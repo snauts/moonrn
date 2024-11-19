@@ -40,6 +40,10 @@ static void setup_irq(byte base) {
     __asm__("ei");
 }
 
+static void out_fe(byte data) {
+    __asm__("out (#0xfe), a"); data;
+}
+
 static void setup_system(void) {
 #if defined(ZXS)
     byte top = (byte) ((IRQ_BASE >> 8) - 1);
@@ -51,7 +55,27 @@ static void setup_system(void) {
 #endif
 }
 
+static void precalculate(void) {
+#if defined(ZXS)
+    for (byte y = 0; y < 192; y++) {
+	byte f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
+	map_y[y] = (byte *) (0x4000 + (f << 5));
+    }
+#endif
+}
+
+static void clear_screen(void) {
+#if defined(ZXS)
+    memset((byte *) 0x5800, 0x00, 0x300);
+    memset((byte *) 0x4000, 0x00, 0x1800);
+    out_fe(0);
+#endif
+}
+
 void reset(void) {
     SETUP_STACK();
-    while (1) { }
+    setup_system();
+    precalculate();
+    clear_screen();
+    for (;;) { }
 }
