@@ -1,0 +1,57 @@
+typedef signed char int8;
+typedef unsigned char byte;
+typedef unsigned short word;
+
+#define ADDR(obj)	((word) (obj))
+#define BYTE(addr)	(* (volatile byte *) (addr))
+#define WORD(addr)	(* (volatile word *) (addr))
+#define SIZE(array)	(sizeof(array) / sizeof(*(array)))
+
+static volatile byte vblank;
+static byte *map_y[192];
+
+#if defined(ZXS)
+#define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
+#define IRQ_BASE	0xfe00
+#endif
+
+static void memset(byte *ptr, byte data, word len) {
+    while (len-- > 0) { *ptr++ = data; }
+}
+
+static void memcpy(byte *dst, byte *src, word len) {
+    while (len-- > 0) { *dst++ = *src++; }
+}
+
+static void interrupt(void) __naked {
+    __asm__("di");
+    __asm__("push af");
+    __asm__("ld a, #1");
+    __asm__("ld (_vblank), a");
+    __asm__("pop af");
+    __asm__("ei");
+    __asm__("reti");
+}
+
+static void setup_irq(byte base) {
+    __asm__("di");
+    __asm__("ld i, a"); base;
+    __asm__("im 2");
+    __asm__("ei");
+}
+
+static void setup_system(void) {
+#if defined(ZXS)
+    byte top = (byte) ((IRQ_BASE >> 8) - 1);
+    word jmp_addr = (top << 8) | top;
+    BYTE(jmp_addr + 0) = 0xc3;
+    WORD(jmp_addr + 1) = ADDR(&interrupt);
+    memset((byte *) IRQ_BASE, top, 0x101);
+    setup_irq(IRQ_BASE >> 8);
+#endif
+}
+
+void reset(void) {
+    SETUP_STACK();
+    while (1) { }
+}
