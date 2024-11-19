@@ -1,4 +1,5 @@
 typedef signed char int8;
+typedef signed short int16;
 typedef unsigned char byte;
 typedef unsigned short word;
 
@@ -65,6 +66,31 @@ static void put_pixel(byte x, byte y) {
 
 static byte get_pixel(byte x, byte y) {
     return map_y[y][x >> 3] & pixel_map[x & 7];
+}
+
+static int16 abs(int16 value) {
+    return value < 0 ? -value : value;
+}
+
+static void plot_line(byte x0, byte y0, byte x1, byte y1) {
+    int8 sx = x0 < x1 ? 1 : -1;
+    int8 sy = y0 < y1 ? 1 : -1;
+    int16 dx = abs(x1 - x0);
+    int16 dy = -abs(y1 - y0);
+    int16 error = dx + dy;
+
+    while (x0 != x1 || y0 != y1) {
+        int16 e2 = 2 * error;
+	put_pixel(x0, y0);
+        if (e2 >= dy) {
+            error = error + dy;
+            x0 = x0 + sx;
+        }
+        if (e2 <= dx) {
+            error = error + dx;
+            y0 = y0 + sy;
+        }
+    }
 }
 
 static void precalculate(void) {
