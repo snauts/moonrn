@@ -55,6 +55,18 @@ static void setup_system(void) {
 #endif
 }
 
+static const byte pixel_map[] = {
+    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+};
+
+static void put_pixel(byte x, byte y) {
+    map_y[y][x >> 3] ^= pixel_map[x & 7];
+}
+
+static byte get_pixel(byte x, byte y) {
+    return map_y[y][x >> 3] & pixel_map[x & 7];
+}
+
 static void precalculate(void) {
 #if defined(ZXS)
     for (byte y = 0; y < 192; y++) {
