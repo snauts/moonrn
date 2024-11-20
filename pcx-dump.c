@@ -50,13 +50,18 @@ static int equals(unsigned char *src, int size) {
     return count;
 }
 
+static int min(int a, int b) {
+    return a < b ? a : b;
+}
+
 static int back(unsigned char *src, int pos, int size, int *ret) {
+    pos = min(255, pos);
     if (size > pos) size = pos;
 
     for (int i = size; i > 1; i--) {
-	for (int x = 0; x <= size - i; x++) {
-	    if (memcmp(src - pos + x, src, i) == 0) {
-		*ret = pos - x;
+	for (int x = pos; x >= size; x--) {
+	    if (memcmp(src - x, src, i) == 0) {
+		*ret = x;
 		return i;
 	    }
 	}
@@ -68,7 +73,7 @@ static int back(unsigned char *src, int pos, int size, int *ret) {
 #define WINDOW 64
 
 static int win(int value) {
-    return value < WINDOW ? value : WINDOW;
+    return min(value, WINDOW);
 }
 
 static int compress(unsigned char *dst, unsigned char *src, int size) {
@@ -102,7 +107,7 @@ static int compress(unsigned char *dst, unsigned char *src, int size) {
 	int b = 0;
 	int c = win(size);
 	int e = equals(src, c);
-	int n = back(src, win(pos), c, &b);
+	int n = back(src, pos, c, &b);
 
 	if (e > 1 && e > n) {
 	    encode(0x80, e, *src);
