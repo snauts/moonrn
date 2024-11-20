@@ -116,6 +116,37 @@ static void clear_screen(void) {
 #endif
 }
 
+static void put_char(char symbol, word n, byte color) {
+    byte x = n & 0x1f;
+    byte y = (n >> 2) & ~7;
+    byte *ptr = map_y[y] + x;
+    byte *addr = (byte *) 0x3c00 + (symbol << 3);
+    for (byte i = 0; i < 8; i++) {
+	*ptr = *addr++;
+	ptr += 0x100;
+    }
+    BYTE(0x5800 + n) = color;
+}
+
+static void put_str(const char *msg, word n, byte color) {
+    while (*msg != 0) {
+	put_char(*(msg++), n++, color);
+    }
+}
+
+static char to_hex(byte digit) {
+    return (digit < 10) ? '0' + digit : 'A' + digit - 10;
+}
+
+static void put_num(word num, word n, byte color) {
+    char msg[] = "0000";
+    for (byte i = 0; i < 4; i++) {
+	msg[3 - i] = to_hex(num & 0xf);
+	num = num >> 4;
+    }
+    put_str(msg, n, color);
+}
+
 static void draw_tile(byte *data, byte x, byte y) {
     y = y << 3;
     do {
