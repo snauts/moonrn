@@ -16,6 +16,10 @@ static byte *map_y[192];
 #define IRQ_BASE	0xfe00
 #endif
 
+static void __sdcc_call_hl(void) __naked {
+    __asm__("jp (hl)");
+}
+
 static void memset(byte *ptr, byte data, word len) {
     while (len-- > 0) { *ptr++ = data; }
 }
@@ -108,6 +112,36 @@ static void clear_screen(void) {
     memset((byte *) 0x4000, 0x00, 0x1800);
     out_fe(0);
 #endif
+}
+
+static void uncompress(byte *dst, byte *src, word size) {
+    while (size > 0) {
+	byte data = (*src & 0x3f) + 1;
+	switch (*(src++) & 0xc0) {
+	case 0x00:
+	    *(dst++) = data - 1;
+	    continue;
+	case 0x40:
+	    memcpy(dst, src, data);
+	    size -= data;
+	    dst += data;
+	    src += data;
+	    break;
+	case 0x80:
+	    memset(dst, *src, data);
+	    dst += data;
+	    size--;
+	    src++;
+	    break;
+	case 0xc0:
+	    memcpy(dst, dst - *src, data);
+	    dst += data;
+	    size--;
+	    src++;
+	    break;
+	}
+	size--;
+    }
 }
 
 void reset(void) {
