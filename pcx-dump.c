@@ -51,6 +51,17 @@ static int equals(unsigned char *src, int size) {
 }
 
 static int back(unsigned char *src, int pos, int size, int *ret) {
+    if (size > pos) size = pos;
+
+    for (int i = size; i > 1; i--) {
+	for (int x = 0; x <= size - i; x++) {
+	    if (memcmp(src - pos + x, src, i) == 0) {
+		*ret = pos - x;
+		return i;
+	    }
+	}
+    }
+
     return 0;
 }
 
