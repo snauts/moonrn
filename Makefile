@@ -10,6 +10,7 @@ all:
 	@echo "make fuse" - build and run fuse
 
 prg:
+	@gcc $(TYPE) -lm pcx-dump.c -o pcx-dump
 	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o crawlo.ihx
 	hex2bin crawlo.ihx > /dev/null
 
@@ -24,4 +25,4 @@ fuse: zxs
 	fuse --machine 128 --no-confirm-actions -g 2x crawlo.tap
 
 clean:
-	rm -f crawlo*
+	rm -f crawlo* pcx-dump
