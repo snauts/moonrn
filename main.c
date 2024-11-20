@@ -160,7 +160,7 @@ static void uncompress(byte *dst, byte *src, word size) {
 	switch (*(src++) & 0xc0) {
 	case 0x00:
 	    *(dst++) = data - 1;
-	    continue;
+	    break;
 	case 0x40:
 	    memcpy(dst, src, data);
 	    size -= data;
