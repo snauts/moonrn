@@ -222,7 +222,9 @@ static int match(void *pixel, int n, void *tiles, int i) {
     return *ptr1 == *ptr2;
 }
 
-static void save_tileset(char *name, unsigned char *pixel, int pixel_size) {
+static void save_tileset(unsigned char *pixel, int pixel_size,
+			 unsigned char *color, int color_size) {
+
     int tiles_size = 0;
     unsigned char tiles[pixel_size];
     unsigned char index[pixel_size / 8];
@@ -245,8 +247,12 @@ static void save_tileset(char *name, unsigned char *pixel, int pixel_size) {
 
     fprintf(stderr, "IMAGE:%s TILES:%d\n", header.name, tiles_size / 8);
 
+    char name[256];
+    remove_extension(header.name, name);
+
     compress_and_save(name, "index", index, pixel_size / 8);
     compress_and_save(name, "tiles", tiles, tiles_size);
+    compress_and_save(name, "color", color, color_size);
 }
 
 static void save_bitmap(unsigned char *buf, int size) {
@@ -269,12 +275,7 @@ static void save_bitmap(unsigned char *buf, int size) {
 
     convert_to_stripe(header.w, header.h, pixel);
 
-    char name[256];
-    remove_extension(header.name, name);
-
-    save_tileset(name, pixel, pixel_size);
-
-    compress_and_save(name, "color", color, color_size);
+    save_tileset(pixel, pixel_size, color, color_size);
 }
 
 static unsigned char *read_pcx(const char *file) {
