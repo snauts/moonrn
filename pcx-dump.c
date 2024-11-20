@@ -127,17 +127,6 @@ static int compress(unsigned char *dst, unsigned char *src, int size) {
     return count;
 }
 
-static void compress_in_place(unsigned char *buf, int *size) {
-    unsigned char tmp[*size * 2];
-    int count = compress(tmp, buf, *size);
-    if (count > *size) {
-	fprintf(stderr, "%s: compression fail\n", header.name);
-	exit(-ENOSPC);
-    }
-    memcpy(buf, tmp, count);
-    *size = count;
-}
-
 static void remove_extension(char *src, char *dst) {
     for (int i = 0; i < strlen(src); i++) {
 	if (src[i] == '.') {
@@ -205,20 +194,59 @@ static unsigned short on_pixel(unsigned char *buf, int i, int w) {
     return pixel == 0 ? 0x1 : pixel;
 }
 
-static void save(unsigned char *pixel, int pixel_size,
-		 unsigned char *color, int color_size) {
-
-    char name[256];
-    remove_extension(header.name, name);
-    printf("static const byte %s_map[] = {\n", name);
-    dump_buffer(pixel, pixel_size, 1);
+static void compress_and_save(char *name, char *post, void *buf, int size) {
+    unsigned char tmp[2 * size];
+    int count = compress(tmp, buf, size);
+    printf("static const byte %s_%s[] = {\n", name, post);
+    dump_buffer(tmp, count, 1);
     printf("};\n");
-    if (color != NULL) {
-	compress_in_place(color, &color_size);
-	printf("static const byte %s_color[] = {\n", name);
-	dump_buffer(color, color_size, 1);
-	printf("};\n");
+}
+
+static void convert_to_stripe(int w, int h, unsigned char *output) {
+    int n = 0;
+    int size = w * h / 8;
+    unsigned char tmp[size];
+    for (int y = 0; y < h; y += 8) {
+	for (int x = 0; x < w / 8; x++) {
+	    for (int i = 0; i < 8; i++) {
+		tmp[n++] = output[((y + i) * w / 8) + x];
+	    }
+	}
     }
+    memcpy(output, tmp, size);
+}
+
+static int match(void *pixel, int n, void *tiles, int i) {
+    unsigned long *ptr1 = pixel + n;
+    unsigned long *ptr2 = tiles + i;
+    return *ptr1 == *ptr2;
+}
+
+static void save_tileset(char *name, unsigned char *pixel, int pixel_size) {
+    int tiles_size = 0;
+    unsigned char tiles[pixel_size];
+    unsigned char index[pixel_size / 8];
+
+    for (int n = 0; n < pixel_size; n += 8) {
+	int have_match = -1;
+	for (int i = 0; i < tiles_size; i += 8) {
+	    if (match(pixel, n, tiles, i)) {
+		have_match = i / 8;
+		break;
+	    }
+	}
+	if (have_match < 0) {
+	    memcpy(tiles + tiles_size, pixel + n, 8);
+	    have_match = tiles_size / 8;
+	    tiles_size += 8;
+	}
+	index[n / 8] = have_match;
+    }
+
+    fprintf(stderr, "IMAGE:%s TILES:%d\n", header.name, tiles_size / 8);
+
+    compress_and_save(name, "index", index, pixel_size / 8);
+    compress_and_save(name, "tiles", tiles, tiles_size);
 }
 
 static void save_bitmap(unsigned char *buf, int size) {
@@ -239,7 +267,14 @@ static void save_bitmap(unsigned char *buf, int size) {
 	color[i] = encode_ink(on[i]);
     }
 
-    save(pixel, pixel_size, color, color_size);
+    convert_to_stripe(header.w, header.h, pixel);
+
+    char name[256];
+    remove_extension(header.name, name);
+
+    save_tileset(name, pixel, pixel_size);
+
+    compress_and_save(name, "color", color, color_size);
 }
 
 static unsigned char *read_pcx(const char *file) {
