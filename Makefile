@@ -9,8 +9,11 @@ all:
 	@echo "make zxs" - build .tap for ZX Spectrum
 	@echo "make fuse" - build and run fuse
 
-prg:
+pcx:
 	@gcc $(TYPE) -lm pcx-dump.c -o pcx-dump
+	@./pcx-dump image.pcx > data.h
+
+prg: pcx
 	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o crawlo.ihx
 	hex2bin crawlo.ihx > /dev/null
 

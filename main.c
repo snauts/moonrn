@@ -3,6 +3,8 @@ typedef signed short int16;
 typedef unsigned char byte;
 typedef unsigned short word;
 
+#include "data.h"
+
 #define ADDR(obj)	((word) (obj))
 #define BYTE(addr)	(* (volatile byte *) (addr))
 #define WORD(addr)	(* (volatile word *) (addr))
@@ -114,6 +116,13 @@ static void clear_screen(void) {
 #endif
 }
 
+static void draw_tile(byte *data, byte x, byte y) {
+    y = y << 3;
+    do {
+	map_y[y++][x] = *(data++);
+    } while (y & 7);
+}
+
 static void uncompress(byte *dst, byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
@@ -149,5 +158,20 @@ void reset(void) {
     setup_system();
     precalculate();
     clear_screen();
+
+    uncompress((void *) 0x5b00, image_index, sizeof(image_index));
+    uncompress((void *) 0x6000, image_tiles, sizeof(image_tiles));
+
+    byte *ptr = (byte *) 0x5b00;
+    for (byte y = 0; y < 24; y++) {
+	for (byte x = 0; x < 32; x++) {
+	    word offset = *(ptr++);
+	    offset = 0x6000 + (offset << 3);
+	    draw_tile((byte *) offset, x, y);
+	}
+    }
+
+    uncompress((void *) 0x5800, image_color, sizeof(image_color));
+
     for (;;) { }
 }
