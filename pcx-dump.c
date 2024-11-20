@@ -26,6 +26,39 @@ static unsigned char get_color(unsigned char *color) {
     return result;
 }
 
+static int equals(unsigned char *src, int size) {
+    int count = 1;
+    size = size - count;
+    unsigned char byte = *(src++);
+
+    while (size > 0 && byte == *src) {
+	src++;
+	count++;
+	size--;
+    }
+
+    return count;
+}
+
+static int unique(unsigned char *src, int size) {
+    int count = 0;
+    unsigned char byte = *(src++);
+
+    while (size > 0 && byte != *src) {
+	byte = *(src++);
+	count++;
+	size--;
+    }
+
+    return count;
+}
+
+static int compress(unsigned char *dst, unsigned char *src, int size) {
+    unsigned char *start = src;
+    int count = 0;
+    return count;
+}
+
 static unsigned char *read_pcx(const char *file) {
     struct stat st;
     int palette_offset = 16;
