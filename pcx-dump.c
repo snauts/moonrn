@@ -12,6 +12,16 @@ struct Header {
     short w, h;
 } header;
 
+void hexdump(unsigned char *buf, int size) {
+    for (int i = 0; i < size; i++) {
+	fprintf(stderr, "%02x ", buf[i]);
+	if ((i & 0xf) == 0xf) {
+	    fprintf(stderr, "\n");
+	}
+    }
+    if ((size & 0xf) != 0x0) fprintf(stderr, "\n");
+}
+
 static unsigned char get_color(unsigned char *color) {
     unsigned char result = 0;
     if (color[0] >= 0x80) result |= 0x02;
@@ -40,22 +50,63 @@ static int equals(unsigned char *src, int size) {
     return count;
 }
 
-static int unique(unsigned char *src, int size) {
-    int count = 0;
-    unsigned char byte = *(src++);
+static int back(unsigned char *src, int pos, int size, int *ret) {
+    return 0;
+}
 
-    while (size > 0 && byte != *src) {
-	byte = *(src++);
-	count++;
-	size--;
-    }
-
-    return count;
+static int win(int value) {
+    return value < 63 ? value : 63;
 }
 
 static int compress(unsigned char *dst, unsigned char *src, int size) {
-    unsigned char *start = src;
+    unsigned char buf[63];
     int count = 0;
+    int diff = 0;
+    int pos = 0;
+
+    void flush(void) {
+	*dst = 0x40 | diff;
+	memcpy(dst + 1, buf, diff);
+	count += diff + 1;
+	dst += diff + 1;
+	diff = 0;
+    }
+
+    void encode(unsigned char tag, int amount, int data) {
+	if (diff > 0) flush();
+	*(dst++) = tag | amount;
+	*(dst++) = data;
+	src += amount;
+	pos += amount;
+	count += 2;
+    }
+
+    while (pos < size) {
+	int b = 0;
+	int c = win(size);
+	int e = equals(src, c);
+	int n = back(src, win(pos), c, &b);
+
+	if (e > 1 && e > n) {
+	    encode(0x80, e, *src);
+	}
+	else if (n > 1) {
+	    encode(0xc0, n, b);
+	}
+	else if (diff == 0 && *src < 64) {
+	    *(dst++) = *(src++);
+	    count++;
+	    pos++;
+	}
+	else {
+	    if (diff == 63) flush();
+	    buf[diff++] = *(src++);
+	    pos++;
+	}
+    }
+
+    if (diff > 0) flush();
+
     return count;
 }
 
