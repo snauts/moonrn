@@ -65,27 +65,33 @@ static int back(unsigned char *src, int pos, int size, int *ret) {
     return 0;
 }
 
+#define WINDOW 64
+
 static int win(int value) {
-    return value < 63 ? value : 63;
+    return value < WINDOW ? value : WINDOW;
 }
 
 static int compress(unsigned char *dst, unsigned char *src, int size) {
-    unsigned char buf[63];
+    unsigned char buf[WINDOW];
     int count = 0;
     int diff = 0;
     int pos = 0;
 
+    void update(unsigned char tag, int amount) {
+	*(dst++) = tag | (amount - 1);
+    }
+
     void flush(void) {
-	*dst = 0x40 | diff;
-	memcpy(dst + 1, buf, diff);
+	update(0x40, diff);
+	memcpy(dst, buf, diff);
 	count += diff + 1;
-	dst += diff + 1;
+	dst += diff;
 	diff = 0;
     }
 
     void encode(unsigned char tag, int amount, int data) {
 	if (diff > 0) flush();
-	*(dst++) = tag | amount;
+	update(tag, amount);
 	*(dst++) = data;
 	src += amount;
 	pos += amount;
@@ -104,13 +110,13 @@ static int compress(unsigned char *dst, unsigned char *src, int size) {
 	else if (n > 1) {
 	    encode(0xc0, n, b);
 	}
-	else if (diff == 0 && *src < 64) {
+	else if (diff == 0 && *src < WINDOW) {
 	    *(dst++) = *(src++);
 	    count++;
 	    pos++;
 	}
 	else {
-	    if (diff == 63) flush();
+	    if (diff == WINDOW) flush();
 	    buf[diff++] = *(src++);
 	    pos++;
 	}
