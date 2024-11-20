@@ -127,6 +127,17 @@ static int compress(unsigned char *dst, unsigned char *src, int size) {
     return count;
 }
 
+static void compress_in_place(unsigned char *buf, int *size) {
+    unsigned char tmp[*size * 2];
+    int count = compress(tmp, buf, *size);
+    if (count > *size) {
+	fprintf(stderr, "%s: compression fail\n", header.name);
+	exit(-ENOSPC);
+    }
+    memcpy(buf, tmp, count);
+    *size = count;
+}
+
 static void remove_extension(char *src, char *dst) {
     for (int i = 0; i < strlen(src); i++) {
 	if (src[i] == '.') {
@@ -203,6 +214,7 @@ static void save(unsigned char *pixel, int pixel_size,
     dump_buffer(pixel, pixel_size, 1);
     printf("};\n");
     if (color != NULL) {
+	compress_in_place(color, &color_size);
 	printf("static const byte %s_color[] = {\n", name);
 	dump_buffer(color, color_size, 1);
 	printf("};\n");
