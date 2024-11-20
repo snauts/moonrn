@@ -221,10 +221,21 @@ static void convert_to_stripe(int w, int h, unsigned char *output) {
     memcpy(output, tmp, size);
 }
 
-static int match(void *pixel, int n, void *tiles, int i) {
+static unsigned char swap_colors(unsigned char data) {
+    return (data & 0xc0) | ((data & 0x07) << 3) | ((data >> 3) & 0x03);
+}
+
+static int match(void *pixel, int n, void *tiles, int i, void *color) {
     unsigned long *ptr1 = pixel + n;
     unsigned long *ptr2 = tiles + i;
-    return *ptr1 == *ptr2;
+    if (*ptr1 == ~*ptr2) {
+	unsigned char *ink = color + n / 8;
+	*ink = swap_colors(*ink);
+	return 1;
+    }
+    else {
+	return *ptr1 == *ptr2;
+    }
 }
 
 static void save_tileset(unsigned char *pixel, int pixel_size,
@@ -237,7 +248,7 @@ static void save_tileset(unsigned char *pixel, int pixel_size,
     for (int n = 0; n < pixel_size; n += 8) {
 	int have_match = -1;
 	for (int i = 0; i < tiles_size; i += 8) {
-	    if (match(pixel, n, tiles, i)) {
+	    if (match(pixel, n, tiles, i, color)) {
 		have_match = i / 8;
 		break;
 	    }
