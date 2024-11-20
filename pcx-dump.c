@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -225,49 +226,49 @@ static unsigned char swap_colors(unsigned char data) {
     return (data & 0xc0) | ((data & 0x07) << 3) | ((data >> 3) & 0x03);
 }
 
-static int match(void *pixel, int n, void *tiles, int i, void *color) {
-    unsigned long *ptr1 = pixel + n;
-    unsigned long *ptr2 = tiles + i;
-    if (*ptr1 == ~*ptr2) {
-	unsigned char *ink = color + n / 8;
-	*ink = swap_colors(*ink);
+static int match(uint64_t pixel, uint64_t tiles, uint8_t *color) {
+    if (pixel == ~tiles) {
+	*color = swap_colors(*color);
 	return 1;
     }
     else {
-	return *ptr1 == *ptr2;
+	return pixel == tiles;
     }
 }
 
 static void save_tileset(unsigned char *pixel, int pixel_size,
 			 unsigned char *color, int color_size) {
 
-    int tiles_size = 0;
+    int tile_count = 0;
+    int index_size = pixel_size / 8;
     unsigned char tiles[pixel_size];
-    unsigned char index[pixel_size / 8];
+    unsigned char index[index_size];
+    uint64_t *ptr_pixel = (uint64_t *) pixel;
+    uint64_t *ptr_tiles = (uint64_t *) tiles;
 
-    for (int n = 0; n < pixel_size; n += 8) {
+    for (int n = 0; n < index_size; n++) {
 	int have_match = -1;
-	for (int i = 0; i < tiles_size; i += 8) {
-	    if (match(pixel, n, tiles, i, color)) {
-		have_match = i / 8;
+	for (int i = 0; i < tile_count; i++) {
+	    if (match(ptr_pixel[n], ptr_tiles[i], color + n)) {
+		have_match = i;
 		break;
 	    }
 	}
 	if (have_match < 0) {
-	    memcpy(tiles + tiles_size, pixel + n, 8);
-	    have_match = tiles_size / 8;
-	    tiles_size += 8;
+	    ptr_tiles[tile_count] = ptr_pixel[n];
+	    have_match = tile_count;
+	    tile_count++;
 	}
-	index[n / 8] = have_match;
+	index[n] = have_match;
     }
 
-    fprintf(stderr, "IMAGE:%s TILES:%d\n", header.name, tiles_size / 8);
+    fprintf(stderr, "IMAGE:%s TILES:%d\n", header.name, tile_count);
 
     char name[256];
     remove_extension(header.name, name);
 
-    compress_and_save(name, "index", index, pixel_size / 8);
-    compress_and_save(name, "tiles", tiles, tiles_size);
+    compress_and_save(name, "tiles", tiles, 8 * tile_count);
+    compress_and_save(name, "index", index, index_size);
     compress_and_save(name, "color", color, color_size);
 }
 
