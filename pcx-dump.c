@@ -127,6 +127,109 @@ static int compress(unsigned char *dst, unsigned char *src, int size) {
     return count;
 }
 
+static void remove_extension(char *src, char *dst) {
+    for (int i = 0; i < strlen(src); i++) {
+	if (src[i] == '.') {
+	    dst[i] = 0;
+	    return;
+	}
+	else if (src[i] == '/') {
+	    dst[i] = '_';
+	}
+	else {
+	    dst[i] = src[i];
+	}
+    }
+}
+
+static void dump_buffer(void *ptr, int size, int step) {
+    for (int i = 0; i < size; i++) {
+	if (step == 1) {
+	    printf(" 0x%02x,", * (unsigned char *) ptr);
+	}
+	else {
+	    printf(" 0x%04x,", * (unsigned short *) ptr);
+	}
+	if ((i & 7) == 7) printf("\n");
+	ptr += step;
+    }
+    if ((size & 7) != 0) printf("\n");
+}
+
+static unsigned short encode_pixel(unsigned char a, unsigned char b) {
+    return a > b ? (b << 8) | a : (a << 8) | b;
+}
+
+static unsigned char encode_ink(unsigned short colors) {
+    unsigned char b = colors >> 8;
+    unsigned char f = colors & 0xff;
+    unsigned char l = (f > 7 || b > 7) ? 0x40 : 0x00;
+    return l | (f & 7) | ((b & 7) << 3);
+}
+
+static unsigned char consume_pixels(unsigned char *buf, unsigned char on) {
+    unsigned char ret = 0;
+    for (int i = 0; i < 8; i++) {
+	ret = ret << 1;
+	ret |= (buf[i] == on) ? 1 : 0;
+    }
+    return ret;
+}
+
+static int ink_index(int i) {
+    return (i / header.w / 8) * (header.w / 8) + i % header.w / 8;
+}
+
+static unsigned short on_pixel(unsigned char *buf, int i, int w) {
+    unsigned char pixel = buf[i];
+    for (int y = 0; y < 8; y++) {
+	for (int x = 0; x < 8; x++) {
+	    unsigned char next = buf[i + x];
+	    if (next != pixel) {
+		return encode_pixel(next, pixel);
+	    }
+	}
+	i += w;
+    }
+    return pixel == 0 ? 0x1 : pixel;
+}
+
+static void save(unsigned char *pixel, int pixel_size,
+		 unsigned char *color, int color_size) {
+
+    char name[256];
+    remove_extension(header.name, name);
+    printf("static const byte %s_map[] = {\n", name);
+    dump_buffer(pixel, pixel_size, 1);
+    printf("};\n");
+    if (color != NULL) {
+	printf("static const byte %s_color[] = {\n", name);
+	dump_buffer(color, color_size, 1);
+	printf("};\n");
+    }
+}
+
+static void save_bitmap(unsigned char *buf, int size) {
+    int j = 0;
+    int pixel_size = size / 8;
+    int color_size = size / 64;
+    unsigned char pixel[pixel_size];
+    unsigned char color[color_size];
+    unsigned short on[color_size];
+    for (int i = 0; i < size; i += 8) {
+	if (i / header.w % 8 == 0) {
+	    on[j++] = on_pixel(buf, i, header.w);
+	}
+	unsigned char data = on[ink_index(i)] & 0xff;
+	pixel[i / 8] = consume_pixels(buf + i, data);
+    }
+    for (int i = 0; i < color_size; i++) {
+	color[i] = encode_ink(on[i]);
+    }
+
+    save(pixel, pixel_size, color, color_size);
+}
+
 static unsigned char *read_pcx(const char *file) {
     struct stat st;
     int palette_offset = 16;
@@ -169,17 +272,17 @@ static unsigned char *read_pcx(const char *file) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
-	printf("USAGE: pcx-dump [option] file.pcx\n");
-	printf("  -t   update tileset zx\n");
+    if (argc < 2) {
+	printf("USAGE: pcx-dump file.pcx\n");
 	return 0;
     }
 
-    header.name = argv[2];
+    header.name = argv[1];
 
-    unsigned char *buf = read_pcx(header.name);
+    void *buf = read_pcx(header.name);
     if (buf == NULL) return -ENOENT;
 
+    save_bitmap(buf, header.w * header.h);
     free(buf);
     return 0;
 }
