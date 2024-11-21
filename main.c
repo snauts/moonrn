@@ -3,6 +3,15 @@ typedef signed short int16;
 typedef unsigned char byte;
 typedef unsigned short word;
 
+struct Image {
+    const byte *tiles;
+    word tiles_size;
+    const byte *color;
+    word color_size;
+    const byte *index;
+    word index_size;
+};
+
 #include "data.h"
 
 #define ADDR(obj)	((word) (obj))
@@ -184,25 +193,32 @@ static void uncompress(byte *dst, byte *src, word size) {
     }
 }
 
+#define COLOR_BUF 0x5800
+#define INDEX_BUF 0x5b00
+#define TILES_BUF 0x5e00
+
+static void display_image(struct Image *img) {
+    uncompress((void *) INDEX_BUF, img->index, img->index_size);
+    uncompress((void *) TILES_BUF, img->tiles, img->tiles_size);
+
+    byte *ptr = (byte *) INDEX_BUF;
+    for (byte y = 0; y < 24; y++) {
+	for (byte x = 0; x < 32; x++) {
+	    word offset = *(ptr++);
+	    offset = TILES_BUF + (offset << 3);
+	    draw_tile((byte *) offset, x, y);
+	}
+    }
+
+    uncompress((void *) COLOR_BUF, img->color, img->color_size);
+}
+
 void reset(void) {
     SETUP_STACK();
     setup_system();
     precalculate();
     clear_screen();
 
-    uncompress((void *) 0x5b00, image_index, sizeof(image_index));
-    uncompress((void *) 0x6000, image_tiles, sizeof(image_tiles));
-
-    byte *ptr = (byte *) 0x5b00;
-    for (byte y = 0; y < 24; y++) {
-	for (byte x = 0; x < 32; x++) {
-	    word offset = *(ptr++);
-	    offset = 0x6000 + (offset << 3);
-	    draw_tile((byte *) offset, x, y);
-	}
-    }
-
-    uncompress((void *) 0x5800, image_color, sizeof(image_color));
-
+    display_image(&image);
     for (;;) { }
 }

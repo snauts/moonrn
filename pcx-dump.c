@@ -208,6 +208,11 @@ static void compress_and_save(char *name, char *post, void *buf, int size) {
     printf("};\n");
 }
 
+static void save_image_entry(char *name, char *type) {
+    printf(" .%s = %s_%s,\n", type, name, type);
+    printf(" .%s_size = sizeof(%s_%s),\n", type, name, type);
+}
+
 static void convert_to_stripe(int w, int h, unsigned char *output) {
     int n = 0;
     int size = w * h / 8;
@@ -270,6 +275,12 @@ static void save_tileset(unsigned char *pixel, int pixel_size,
     compress_and_save(name, "tiles", tiles, 8 * tile_count);
     compress_and_save(name, "index", index, index_size);
     compress_and_save(name, "color", color, color_size);
+
+    printf("static const struct Image %s = {\n", name);
+    save_image_entry(name, "tiles");
+    save_image_entry(name, "index");
+    save_image_entry(name, "color");
+    printf("};\n");
 }
 
 static void save_bitmap(unsigned char *buf, int size) {
