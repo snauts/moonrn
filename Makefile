@@ -28,4 +28,4 @@ fuse: zxs
 	fuse --machine 128 --no-confirm-actions -g 2x crawlo.tap
 
 clean:
-	rm -f crawlo* pcx-dump
+	rm -f crawlo* pcx-dump data.h
