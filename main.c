@@ -35,7 +35,7 @@ static void memset(byte *ptr, byte data, word len) {
     while (len-- > 0) { *ptr++ = data; }
 }
 
-static void memcpy(byte *dst, byte *src, word len) {
+static void memcpy(byte *dst, const byte *src, word len) {
     while (len-- > 0) { *dst++ = *src++; }
 }
 
@@ -163,7 +163,7 @@ static void draw_tile(byte *data, byte x, byte y) {
     } while (y & 7);
 }
 
-static void uncompress(byte *dst, byte *src, word size) {
+static void uncompress(byte *dst, const byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
 	switch (*(src++) & 0xc0) {
