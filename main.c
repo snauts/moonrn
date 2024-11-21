@@ -76,7 +76,7 @@ static const byte pixel_map[] = {
 };
 
 static void put_pixel(byte x, byte y) {
-    map_y[y][x >> 3] ^= pixel_map[x & 7];
+    map_y[y][x >> 3] |= pixel_map[x & 7];
 }
 
 static byte get_pixel(byte x, byte y) {
