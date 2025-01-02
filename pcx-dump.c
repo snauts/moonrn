@@ -218,67 +218,26 @@ static void convert_to_stripe(int w, int h, unsigned char *output) {
     int size = w * h / 8;
     unsigned char tmp[size];
     for (int y = 0; y < h; y += 8) {
-	for (int x = 0; x < w / 8; x++) {
-	    for (int i = 0; i < 8; i++) {
-		tmp[n++] = output[((y + i) * w / 8) + x];
-	    }
-	}
+       for (int x = 0; x < w / 8; x++) {
+           for (int i = 0; i < 8; i++) {
+               tmp[n++] = output[((y + i) * w / 8) + x];
+           }
+       }
     }
     memcpy(output, tmp, size);
 }
 
-static unsigned char swap_colors(unsigned char data) {
-    return (data & 0xc0) | ((data & 0x07) << 3) | ((data >> 3) & 0x03);
-}
-
-static int match(uint64_t pixel, uint64_t tiles, uint8_t *color) {
-    if (pixel == ~tiles) {
-	*color = swap_colors(*color);
-	return 1;
-    }
-    else {
-	return pixel == tiles;
-    }
-}
-
-static void save_tileset(unsigned char *pixel, int pixel_size,
-			 unsigned char *color, int color_size) {
-
-    int tile_count = 0;
-    int index_size = pixel_size / 8;
-    unsigned char tiles[pixel_size];
-    unsigned char index[index_size];
-    uint64_t *ptr_pixel = (uint64_t *) pixel;
-    uint64_t *ptr_tiles = (uint64_t *) tiles;
-
-    for (int n = 0; n < index_size; n++) {
-	int have_match = -1;
-	for (int i = 0; i < tile_count; i++) {
-	    if (match(ptr_pixel[n], ptr_tiles[i], color + n)) {
-		have_match = i;
-		break;
-	    }
-	}
-	if (have_match < 0) {
-	    ptr_tiles[tile_count] = ptr_pixel[n];
-	    have_match = tile_count;
-	    tile_count++;
-	}
-	index[n] = have_match;
-    }
-
-    fprintf(stderr, "IMAGE:%s TILES:%d\n", header.name, tile_count);
+static void save_image(unsigned char *pixel, int pixel_size,
+		       unsigned char *color, int color_size) {
 
     char name[256];
     remove_extension(header.name, name);
 
-    compress_and_save(name, "tiles", tiles, 8 * tile_count);
-    compress_and_save(name, "index", index, index_size);
+    compress_and_save(name, "pixel", pixel, pixel_size);
     compress_and_save(name, "color", color, color_size);
 
     printf("static const struct Image %s = {\n", name);
-    save_image_entry(name, "tiles");
-    save_image_entry(name, "index");
+    save_image_entry(name, "pixel");
     save_image_entry(name, "color");
     printf("};\n");
 }
@@ -301,9 +260,7 @@ static void save_bitmap(unsigned char *buf, int size) {
 	color[i] = encode_ink(on[i]);
     }
 
-    convert_to_stripe(header.w, header.h, pixel);
-
-    save_tileset(pixel, pixel_size, color, color_size);
+    save_image(pixel, pixel_size, color, color_size);
 }
 
 static unsigned char *read_pcx(const char *file) {

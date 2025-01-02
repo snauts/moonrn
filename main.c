@@ -4,12 +4,10 @@ typedef unsigned char byte;
 typedef unsigned short word;
 
 struct Image {
-    const byte *tiles;
-    word tiles_size;
+    const byte *pixel;
+    word pixel_size;
     const byte *color;
     word color_size;
-    const byte *index;
-    word index_size;
 };
 
 #include "data.h"
@@ -83,32 +81,6 @@ static byte get_pixel(byte x, byte y) {
     return map_y[y][x >> 3] & pixel_map[x & 7];
 }
 
-static byte abs(int16 value) {
-    return value < 0 ? -value : value;
-}
-
-static void plot_line(byte x0, byte y0, byte x1, byte y1) {
-    int8 sx = x0 < x1 ? 1 : -1;
-    int8 sy = y0 < y1 ? 1 : -1;
-    byte dx = abs(x1 - x0);
-    byte dy = abs(y1 - y0);
-    int16 error = dx - dy;
-
-    while (x0 != x1 || y0 != y1) {
-	put_pixel(x0, y0);
-
-        int16 e2 = 2 * error;
-        if (e2 >= -dy) {
-            error = error - dy;
-            x0 = x0 + sx;
-        }
-        if (e2 <= dx) {
-            error = error + dx;
-            y0 = y0 + sy;
-        }
-    }
-}
-
 static void precalculate(void) {
 #if defined(ZXS)
     for (byte y = 0; y < 192; y++) {
@@ -157,13 +129,6 @@ static void put_num(word num, word n, byte color) {
     put_str(msg, n, color);
 }
 
-static void draw_tile(byte *data, byte x, byte y) {
-    y = y << 3;
-    do {
-	map_y[y++][x] = *(data++);
-    } while (y & 7);
-}
-
 static void uncompress(byte *dst, const byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
@@ -194,24 +159,9 @@ static void uncompress(byte *dst, const byte *src, word size) {
     }
 }
 
-#define COLOR_BUF 0x5800
-#define INDEX_BUF 0x5b00
-#define TILES_BUF 0x5e00
-
 static void display_image(struct Image *img) {
-    uncompress((void *) INDEX_BUF, img->index, img->index_size);
-    uncompress((void *) TILES_BUF, img->tiles, img->tiles_size);
-
-    byte *ptr = (byte *) INDEX_BUF;
-    for (byte y = 0; y < 24; y++) {
-	for (byte x = 0; x < 32; x++) {
-	    word offset = *(ptr++);
-	    offset = TILES_BUF + (offset << 3);
-	    draw_tile((byte *) offset, x, y);
-	}
-    }
-
-    uncompress((void *) COLOR_BUF, img->color, img->color_size);
+    uncompress((void *) 0x4000, img->pixel, img->pixel_size);
+    uncompress((void *) 0x5800, img->color, img->color_size);
 }
 
 void reset(void) {
