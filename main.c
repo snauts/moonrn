@@ -37,6 +37,14 @@ static void memcpy(byte *dst, const byte *src, word len) {
     while (len-- > 0) { *dst++ = *src++; }
 }
 
+static void memswp(byte *dst, byte *src, word len) {
+    while (len-- > 0) {
+	byte tmp = *dst;
+	*dst++ = *src;
+	*src++ = tmp;
+    }
+}
+
 static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
@@ -159,9 +167,18 @@ static void uncompress(byte *dst, const byte *src, word size) {
     }
 }
 
+static void swizzle_lines(byte *src, byte from, byte to) {
+    while (from < to) {
+	byte *dst = map_y[from++];
+	if (dst < src) memswp(dst, src, 32);
+	src += 32;
+    }
+}
+
 static void display_image(struct Image *img) {
-    uncompress((void *) 0x4000, img->pixel, img->pixel_size);
     uncompress((void *) 0x5800, img->color, img->color_size);
+    uncompress((void *) 0x4000, img->pixel, img->pixel_size);
+    swizzle_lines((byte *) 0x4000, 0, 192);
 }
 
 void reset(void) {
