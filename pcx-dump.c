@@ -213,20 +213,6 @@ static void save_image_entry(char *name, char *type) {
     printf(" .%s_size = sizeof(%s_%s),\n", type, name, type);
 }
 
-static void convert_to_stripe(int w, int h, unsigned char *output) {
-    int n = 0;
-    int size = w * h / 8;
-    unsigned char tmp[size];
-    for (int y = 0; y < h; y += 8) {
-       for (int x = 0; x < w / 8; x++) {
-           for (int i = 0; i < 8; i++) {
-               tmp[n++] = output[((y + i) * w / 8) + x];
-           }
-       }
-    }
-    memcpy(output, tmp, size);
-}
-
 static void save_image(unsigned char *pixel, int pixel_size,
 		       unsigned char *color, int color_size) {
 
