@@ -18,10 +18,12 @@ struct Image {
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 static volatile byte vblank;
+static volatile byte ticker;
 static byte *map_y[192];
 
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
+#define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 #define IRQ_BASE	0xfe00
 #endif
 
@@ -48,8 +50,12 @@ static void memswp(byte *dst, byte *src, word len) {
 static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
+    __asm__("push hl");
     __asm__("ld a, #1");
     __asm__("ld (_vblank), a");
+    __asm__("ld hl, #_ticker");
+    __asm__("inc (hl)");
+    __asm__("pop hl");
     __asm__("pop af");
     __asm__("ei");
     __asm__("reti");
@@ -64,6 +70,16 @@ static void setup_irq(byte base) {
 
 static void out_fe(byte data) {
     __asm__("out (#0xfe), a"); data;
+}
+
+static byte in_fe(byte a) __naked {
+    __asm__("in a, (#0xfe)"); a;
+    __asm__("ret");
+}
+
+static void wait_vblank(void) {
+    vblank = 0;
+    while (!vblank) { }
 }
 
 static void setup_system(void) {
@@ -199,12 +215,31 @@ static const char * const intro[] = {
     "   Press SPACE to participate",
 };
 
+static void lit_line(byte offset, byte color) {
+    word addr = 0x5900;
+    for (byte i = 0; i < 16; i++) {
+	if (offset < 0x20) {
+	    BYTE(addr + offset) = color;
+	}
+	addr += 32;
+	offset++;
+    }
+}
+
 static void show_title(void) {
     word offset = 0x140;
     display_strip(&title, 0);
     for (byte i = 0; i < SIZE(intro); i++) {
-	put_str(intro[i], offset, 0x41);
+	put_str(intro[i], offset, 0x01);
 	offset += 32;
+    }
+
+    byte roll = 0;
+    while (!SPACE_DOWN()) {
+	wait_vblank();
+	lit_line(roll - 24, 0x01);
+	lit_line(roll - 12, 0x41);
+	roll = (roll + 1) & 0x3f;
     }
 }
 
