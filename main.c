@@ -249,5 +249,6 @@ void reset(void) {
     precalculate();
     clear_screen();
     show_title();
+    clear_screen();
     for (;;) { }
 }
