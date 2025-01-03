@@ -201,16 +201,16 @@ static void display_strip(struct Image *img, byte strip) {
 }
 
 static const char * const intro[] = {
-    "In kingdom of Mondlauf each year",
-    "second full moon casts it's rays",
+    "Each year in kingdom of Mondlauf",
+    "last full moon casts its rays",
     "on royal ponds solidifying water",
     "for few seconds, just enough for",
     "agile person to leap over waves.",
     "King Lamsack offers a challenge,",
-    "everyone who crosses series of",
-    "his ponds gets small patch of",
-    "land, sack of potatoes and big",
-    "jug of moonshine as a reward.",
+    "anyone who crosses series of his",
+    "ponds gets small patch of land,",
+    "sack of potatoes and big jug of",
+    "finest moonshine as a reward.",
     "", "",
     "   Press SPACE to participate",
 };
