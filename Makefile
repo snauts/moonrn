@@ -11,7 +11,8 @@ all:
 
 pcx:
 	@gcc $(TYPE) -lm pcx-dump.c -o pcx-dump
-	@./pcx-dump image.pcx > data.h
+	@./pcx-dump -c title.pcx > data.h
+	@./pcx-dump -p runner.pcx >> data.h
 
 prg: pcx
 	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o crawlo.ihx

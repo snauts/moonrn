@@ -187,6 +187,6 @@ void reset(void) {
     precalculate();
     clear_screen();
 
-    display_image(&image);
+    display_image(&title);
     for (;;) { }
 }

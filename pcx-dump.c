@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <math.h>
 
+static char option;
+
 struct Header {
     char *name;
     short w, h;
@@ -228,6 +230,14 @@ static void save_image(unsigned char *pixel, int pixel_size,
     printf("};\n");
 }
 
+static void save_raw(unsigned char *pixel, int pixel_size) {
+    char name[256];
+    remove_extension(header.name, name);
+    printf("static const byte %s[] = {\n", name);
+    dump_buffer(pixel, pixel_size, 1);
+    printf("};\n");
+}
+
 static void save_bitmap(unsigned char *buf, int size) {
     int j = 0;
     int pixel_size = size / 8;
@@ -246,7 +256,14 @@ static void save_bitmap(unsigned char *buf, int size) {
 	color[i] = encode_ink(on[i]);
     }
 
-    save_image(pixel, pixel_size, color, color_size);
+    switch (option) {
+    case 'c':
+	save_image(pixel, pixel_size, color, color_size);
+	break;
+    case 'p':
+	save_raw(pixel, pixel_size);
+	break;
+    }
 }
 
 static unsigned char *read_pcx(const char *file) {
@@ -291,12 +308,15 @@ static unsigned char *read_pcx(const char *file) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 2) {
-	printf("USAGE: pcx-dump file.pcx\n");
+    if (argc < 3) {
+	printf("USAGE: pcx-dump [option] file.pcx\n");
+	printf("  -c   save compressed image\n");
+	printf("  -p   save raw pixel data\n");
 	return 0;
     }
 
-    header.name = argv[1];
+    option = argv[1][1];
+    header.name = argv[2];
 
     void *buf = read_pcx(header.name);
     if (buf == NULL) return -ENOENT;
