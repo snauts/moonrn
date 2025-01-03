@@ -184,8 +184,28 @@ static void display_strip(struct Image *img, byte strip) {
     uncompress(ptr, img->color, img->color_size);
 }
 
+static const char * const intro[] = {
+    "In kingdom of Mondlauf each year",
+    "second full moon casts it's rays",
+    "on royal ponds solidifying water",
+    "for few seconds, just enough for",
+    "agile person to leap over waves.",
+    "King Lamsack offers a challenge,",
+    "everyone who crosses series of",
+    "his ponds gets small patch of",
+    "land, sack of potatoes and big",
+    "jug of moonshine as a reward.",
+    "", "",
+    "   Press SPACE to participate",
+};
+
 static void show_title(void) {
+    word offset = 0x140;
     display_strip(&title, 0);
+    for (byte i = 0; i < SIZE(intro); i++) {
+	put_str(intro[i], offset, 0x41);
+	offset += 32;
+    }
 }
 
 void reset(void) {
