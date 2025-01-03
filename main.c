@@ -167,7 +167,8 @@ static void uncompress(byte *dst, const byte *src, word size) {
     }
 }
 
-static void swizzle_lines(byte *src, byte from, byte to) {
+static void swizzle_strip(byte *src, byte from) {
+    byte to = from + 64;
     while (from < to) {
 	byte *dst = map_y[from++];
 	if (dst < src) memswp(dst, src, 32);
@@ -175,10 +176,16 @@ static void swizzle_lines(byte *src, byte from, byte to) {
     }
 }
 
-static void display_image(struct Image *img) {
-    uncompress((void *) 0x5800, img->color, img->color_size);
-    uncompress((void *) 0x4000, img->pixel, img->pixel_size);
-    swizzle_lines((byte *) 0x4000, 0, 192);
+static void display_strip(struct Image *img, byte strip) {
+    byte *ptr = (byte *) 0x4000 + (strip << 11);
+    uncompress(ptr, img->pixel, img->pixel_size);
+    swizzle_strip(ptr, strip << 6);
+    ptr =  (byte *) 0x5800 + (strip << 8);
+    uncompress(ptr, img->color, img->color_size);
+}
+
+static void show_title(void) {
+    display_strip(&title, 0);
 }
 
 void reset(void) {
@@ -186,7 +193,6 @@ void reset(void) {
     setup_system();
     precalculate();
     clear_screen();
-
-    display_image(&title);
+    show_title();
     for (;;) { }
 }
