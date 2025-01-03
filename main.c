@@ -243,6 +243,10 @@ static void show_title(void) {
     }
 }
 
+static void game_loop(void) {
+    display_strip(&horizon, 0);
+}
+
 void reset(void) {
     SETUP_STACK();
     setup_system();
@@ -250,5 +254,6 @@ void reset(void) {
     clear_screen();
     show_title();
     clear_screen();
+    game_loop();
     for (;;) { }
 }
