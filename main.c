@@ -260,9 +260,29 @@ static byte draw_player(void) {
     return 0;
 }
 
+static void shade_cone(byte *ptr, byte color, byte width, byte step) {
+    for (byte y = 8; y < 24; y++) {
+	memset(ptr, color, width);
+	if ((y & step) == step) {
+	    if (((byte) ptr & 0x1f) > 0) {
+		width++;
+		ptr--;
+	    }
+	    if (width < 32) width++;
+	}
+	ptr += 32;
+    }
+}
+
+static void setup_moon_shade(void) {
+    memset((void *) 0x5900, 1, 0x200);
+    shade_cone(0x5902, 5, 14, 0);
+    shade_cone(0x5903, 7, 12, 1);
+}
+
 static void game_loop(void) {
     display_strip(&horizon, 0);
-    memset((void *) 0x5900, 7, 0x200);
+    setup_moon_shade();
 
     byte collision = 0;
     while (!collision) {
