@@ -247,9 +247,17 @@ static byte pos;
 static byte lives;
 static const byte *frame;
 
+#define MAX_WAVES 160
+
+static byte wave_count;
+
+static byte wave_data[MAX_WAVES];
+static byte *wave_addr[MAX_WAVES];
+
 static void init_variables(void) {
     pos = 128;
     lives = 6;
+    wave_count = 0;
     frame = runner;
 }
 
@@ -277,6 +285,12 @@ static void animate_player(void) {
     if (ticker & 1) frame += 8;
     if (frame - runner >= 64) {
 	frame = runner;
+    }
+}
+
+static void draw_pond_waves(void) {
+    for (byte i = 0; i < wave_count; i++) {
+	*wave_addr[i] = wave_data[i];
     }
 }
 
@@ -313,6 +327,7 @@ static void game_loop(void) {
 	out_fe(0x1);
 	clear_player();
 	animate_player();
+	draw_pond_waves();
 	drown = draw_player();
 
 	/* calculate */
