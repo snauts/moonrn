@@ -243,8 +243,32 @@ static void show_title(void) {
     }
 }
 
+static byte pos;
+static byte lives;
+
+static void init_variables(void) {
+    lives = 6;
+    pos = 128;
+}
+
+static byte draw_player(void) {
+    byte *ptr = runner + ((ticker & 0xe) << 2);
+    for (byte y = 0; y < 8; y++) {
+	byte *addr = map_y[pos + y] + 8;
+	*addr = *ptr++;
+    }
+    return 0;
+}
+
 static void game_loop(void) {
     display_strip(&horizon, 0);
+    memset((void *) 0x5900, 7, 0x200);
+
+    byte collision = 0;
+    while (!collision) {
+	wait_vblank();
+	collision = draw_player();
+    }
 }
 
 void reset(void) {
@@ -252,6 +276,7 @@ void reset(void) {
     setup_system();
     precalculate();
     clear_screen();
+    init_variables();
     show_title();
     clear_screen();
     game_loop();

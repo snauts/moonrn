@@ -13,6 +13,7 @@ pcx:
 	@gcc $(TYPE) -lm pcx-dump.c -o pcx-dump
 	@./pcx-dump -c title.pcx > data.h
 	@./pcx-dump -c horizon.pcx >> data.h
+	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h
 
 prg: pcx
