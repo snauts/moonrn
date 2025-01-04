@@ -245,19 +245,39 @@ static void show_title(void) {
 
 static byte pos;
 static byte lives;
+static const byte *frame;
 
 static void init_variables(void) {
-    lives = 6;
     pos = 128;
+    lives = 6;
+    frame = runner;
+}
+
+static void clear_player(void) {
+    byte y = pos;
+    const byte *ptr = frame;
+    for (byte i = 0; i < 8; i++) {
+	map_y[y++][8] ^= *ptr++;
+    }
 }
 
 static byte draw_player(void) {
-    byte *ptr = runner + ((ticker & 0xe) << 2);
-    for (byte y = 0; y < 8; y++) {
-	byte *addr = map_y[pos + y] + 8;
-	*addr = *ptr++;
+    byte y = pos;
+    const byte *ptr = frame;
+    for (byte i = 0; i < 8; i++) {
+	byte data = *ptr++;
+	byte *addr = map_y[y++] + 8;
+	if (*addr & data) return 1;
+	*addr |= data;
     }
     return 0;
+}
+
+static void animate_player(void) {
+    if (ticker & 1) frame += 8;
+    if (frame - runner >= 64) {
+	frame = runner;
+    }
 }
 
 static void shade_cone(byte *ptr, byte color, byte width, byte step) {
@@ -276,18 +296,30 @@ static void shade_cone(byte *ptr, byte color, byte width, byte step) {
 
 static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
-    shade_cone(0x5902, 5, 14, 0);
-    shade_cone(0x5903, 7, 12, 1);
+    shade_cone((byte *) 0x5902, 5, 14, 0);
+    shade_cone((byte *) 0x5903, 7, 12, 1);
 }
 
 static void game_loop(void) {
     display_strip(&horizon, 0);
     setup_moon_shade();
 
-    byte collision = 0;
-    while (!collision) {
+    byte drown = 0;
+    draw_player();
+    while (!drown) {
 	wait_vblank();
-	collision = draw_player();
+
+	/* draw */
+	out_fe(0x1);
+	clear_player();
+	animate_player();
+	drown = draw_player();
+
+	/* calculate */
+	out_fe(0x5);
+
+	/* done */
+	out_fe(0x0);
     }
 }
 
