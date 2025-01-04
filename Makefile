@@ -22,14 +22,15 @@ prg: pcx
 	hex2bin crawlo.ihx > /dev/null
 
 tap:
-	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) crawlo.bin
+	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) \
+		crawlo.bin -o moonrn.tap
 
 zxs:
 	CODE=0x8000 DATA=0x7000	TYPE=-DZXS make prg
 	@make tap
 
 fuse: zxs
-	fuse --machine 128 --no-confirm-actions -g 2x crawlo.tap
+	fuse --machine 48 --no-confirm-actions -g 2x moonrn.tap
 
 clean:
-	rm -f crawlo* pcx-dump data.h
+	rm -f crawlo* pcx-dump data.h moonrn.tap
