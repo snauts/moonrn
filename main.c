@@ -400,17 +400,21 @@ static void wave_before_start(void) {
     }
 }
 
+static void move_level(void) {
+}
+
 static void game_loop(void) {
+    byte drown = 0;
+
     display_strip(&horizon, 0);
     setup_moon_shade();
-
     wave_before_start();
-
-    byte drown = 0;
+    frame = runner;
     draw_player();
-    while (!drown && pos < 184) {
-	wait_vblank();
+    wait_vblank();
+    ticker = 0;
 
+    while (!drown && pos < 184) {
 	/* draw */
 	out_fe(0x1);
 	clear_player();
@@ -420,9 +424,11 @@ static void game_loop(void) {
 
 	/* calculate */
 	out_fe(0x5);
+	move_level();
 
 	/* done */
 	out_fe(0x0);
+	wait_vblank();
     }
 }
 
