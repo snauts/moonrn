@@ -276,6 +276,7 @@ static int8 vel;
 static byte pos;
 static byte jump;
 static byte lives;
+static byte scroll;
 static const byte *frame;
 
 #define MAX_WAVES	128
@@ -291,6 +292,7 @@ static void init_variables(void) {
     vel = 0;
     jump = 0;
     lives = 6;
+    scroll = 0;
     wave_count = 0;
     frame = runner;
 }
@@ -427,7 +429,81 @@ static void drown_player(void) {
 static void prepare_level(void) {
 }
 
+static byte *fill_data;
+static byte **fill_addr;
+static const byte *level_ptr;
+
+static void update_waves(byte *addr, byte data) {
+    *fill_addr++ = addr;
+    *fill_data++ = data;
+    wave_count++;
+}
+
+static void scroller(byte count, byte offset, byte data) {
+    for (byte i = 0; i < count; i++) {
+	byte *addr = * (byte **) level_ptr;
+	addr += (level_ptr[2] - offset) & 0x1f;
+	update_waves(addr, data);
+	level_ptr += 4;
+    }
+}
+
+static const byte scroll1_f[] = {
+    0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff
+};
+
+static const byte scroll1_b[] = {
+    0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00
+};
+
+static const byte scroll2_f[] = {
+    0x03, 0x0f, 0x3f, 0xff
+};
+
+static const byte scroll2_b[] = {
+    0xfc, 0xf0, 0xc0, 0x00
+};
+
 static void move_level(void) {
+    wave_count = 0;
+    level_ptr = level1;
+    fill_data = wave_data;
+    fill_addr = wave_addr;
+
+    byte data;
+    byte offset = scroll;
+    for (byte i = 0; i < 8; i++) {
+	byte count = level1_types[i];
+	switch (i) {
+	case 0:
+	    data = 0x00;
+	    break;
+	case 1:
+	    data = 0xff;
+	    break;
+	case 2:
+	    data = (scroll & 1) ? 0x00 : 0xf0;
+	    break;
+	case 3:
+	    data = (scroll & 1) ? 0xff : 0x0f;
+	    break;
+	case 4:
+	    data = scroll2_b[scroll & 3];
+	    break;
+	case 5:
+	    data = scroll2_f[scroll & 3];
+	    break;
+	case 6:
+	    data = scroll1_b[scroll & 7];
+	    break;
+	case 7:
+	    data = scroll1_f[scroll & 7];
+	    break;
+	}
+	scroller(count, offset, data);
+	if (i & 1) offset >>= 1;
+    }
+    scroll++;
 }
 
 static void game_loop(void) {

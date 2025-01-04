@@ -17,6 +17,7 @@ pcx:
 	@./pcx-dump -p runner.pcx >> data.h
 	@./pcx-dump -p drowner.pcx >> data.h
 	@./pcx-dump -p credits.pcx >> data.h
+	@./pcx-dump -l level1.pcx >> data.h
 
 prg: pcx
 	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o crawlo.ihx
