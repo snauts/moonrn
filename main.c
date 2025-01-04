@@ -503,18 +503,15 @@ static void game_loop(void) {
 
     while (!drown && pos < 184) {
 	/* draw */
-	out_fe(0x1);
 	clear_player();
 	animate_player();
 	draw_pond_waves();
 	drown = draw_player();
 
 	/* calculate */
-	out_fe(0x5);
 	move_level();
 
 	/* done */
-	out_fe(0x0);
 	wait_vblank();
     }
 
