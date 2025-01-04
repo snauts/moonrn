@@ -122,35 +122,59 @@ static void clear_screen(void) {
 #endif
 }
 
-static void put_char(char symbol, word n, byte color) {
-    byte x = n & 0x1f;
-    byte y = (n >> 2) & ~7;
-    byte *ptr = map_y[y] + x;
+static void put_char(char symbol, byte x, byte y) {
+    byte shift = x & 7;
     byte *addr = (byte *) 0x3c00 + (symbol << 3);
     for (byte i = 0; i < 8; i++) {
-	*ptr = *addr++;
-	ptr += 0x100;
+	byte data = *addr++;
+	byte *ptr = map_y[y + i] + (x >> 3);
+	ptr[0] |= (data >> shift);
+	ptr[1] |= (data << (8 - shift));
     }
-    BYTE(0x5800 + n) = color;
 }
 
-static void put_str(const char *msg, word n, byte color) {
+static byte char_mask(char symbol) {
+    byte mask = 0;
+    byte *addr = (byte *) 0x3c00 + (symbol << 3);
+    for (byte i = 0; i < 8; i++) {
+	mask |= *addr++;
+    }
+    return mask;
+}
+
+static byte leading(char symbol) {
+    byte i;
+    byte mask = char_mask(symbol);
+    for (i = 0; i < 8; i++) {
+	if (mask & 0x80) return i;
+	mask = mask << 1;
+    }
+    return i;
+}
+
+static byte trailing(char symbol) {
+    byte i;
+    byte mask = char_mask(symbol);
+    for (i = 0; i < 8; i++) {
+	if (mask & 1) return i;
+	mask = mask >> 1;
+    }
+    return i;
+}
+
+static void put_str(const char *msg, byte x, byte y) {
     while (*msg != 0) {
-	put_char(*(msg++), n++, color);
+	char symbol = *(msg++);
+	if (symbol == ' ') {
+	    x = x + 4;
+	}
+	else {
+	    byte lead = leading(symbol) - 1;
+	    if (lead <= x) x -= lead;
+	    put_char(symbol, x, y);
+	    x += 8 - trailing(symbol);
+	}
     }
-}
-
-static char to_hex(byte digit) {
-    return (digit < 10) ? '0' + digit : 'A' + digit - 10;
-}
-
-static void put_num(word num, word n, byte color) {
-    char msg[] = "0000";
-    for (byte i = 0; i < 4; i++) {
-	msg[3 - i] = to_hex(num & 0xf);
-	num = num >> 4;
-    }
-    put_str(msg, n, color);
 }
 
 static void uncompress(byte *dst, const byte *src, word size) {
@@ -201,18 +225,15 @@ static void display_strip(struct Image *img, byte strip) {
 }
 
 static const char * const intro[] = {
-    "Each year in kingdom of Mondlauf",
-    "last full moon casts its rays",
-    "on royal ponds solidifying water",
-    "for few seconds, just enough for",
-    "agile person to leap over waves.",
-    "King Lamsack offers a challenge,",
-    "anyone who crosses series of his",
-    "ponds gets small patch of land,",
-    "sack of potatoes and big jug of",
-    "finest moonshine as a reward.",
-    "", "",
-    "   Press SPACE to participate",
+    " Each year in the kingdom of Mondlauf,",
+    "the second full moon casts its rays on",
+    "royal ponds solidifying water for a few",
+    "seconds, just enough for an agile person",
+    "to leap over waves. King Lamsack offers",
+    "a challenge: Anyone who crosses a series",
+    "of his ponds gets a small patch of land,",
+    "a sack of seed potatoes and a big jug of",
+    "the finest moonshine as a reward.",
 };
 
 static void lit_line(byte offset, byte color) {
@@ -227,12 +248,11 @@ static void lit_line(byte offset, byte color) {
 }
 
 static void show_title(void) {
-    word offset = 0x120;
     display_strip(&title, 0);
     for (byte i = 0; i < SIZE(intro); i++) {
-	put_str(intro[i], offset, 0x01);
-	offset += 32;
+	put_str(intro[i], 20, 80 + (i << 3));
     }
+    put_str("Press SPACE to participate", 52, 168);
 
     const byte *ptr = credits;
     for (byte i = 0; i < 8; i++) {
