@@ -429,21 +429,14 @@ static void drown_player(void) {
 static void prepare_level(void) {
 }
 
-static byte *fill_data;
-static byte **fill_addr;
 static const byte *level_ptr;
-
-static void update_waves(byte *addr, byte data) {
-    *fill_addr++ = addr;
-    *fill_data++ = data;
-    wave_count++;
-}
-
 static void scroller(byte count, byte offset, byte data) {
-    for (byte i = 0; i < count; i++) {
+    memset(wave_data + wave_count, data, count);
+
+    while (count-- > 0) {
 	byte *addr = * (byte **) level_ptr;
 	addr += (level_ptr[2] - offset) & 0x1f;
-	update_waves(addr, data);
+	wave_addr[wave_count++] = addr;
 	level_ptr += 4;
     }
 }
@@ -464,43 +457,33 @@ static const byte scroll2_b[] = {
     0xfc, 0xf0, 0xc0, 0x00
 };
 
+static byte scroll_data(byte i) {
+    switch (i) {
+    case 0:
+	return 0x00;
+    case 1:
+	return 0xff;
+    case 2:
+	return (scroll & 1) ? 0x00 : 0xf0;
+    case 3:
+	return (scroll & 1) ? 0xff : 0x0f;
+    case 4:
+	return scroll2_b[scroll & 3];
+    case 5:
+	return scroll2_f[scroll & 3];
+    case 6:
+	return scroll1_b[scroll & 7];
+    case 7:
+	return scroll1_f[scroll & 7];
+    }
+}
+
 static void move_level(void) {
     wave_count = 0;
     level_ptr = level1;
-    fill_data = wave_data;
-    fill_addr = wave_addr;
-
-    byte data;
     byte offset = scroll;
     for (byte i = 0; i < 8; i++) {
-	byte count = level1_types[i];
-	switch (i) {
-	case 0:
-	    data = 0x00;
-	    break;
-	case 1:
-	    data = 0xff;
-	    break;
-	case 2:
-	    data = (scroll & 1) ? 0x00 : 0xf0;
-	    break;
-	case 3:
-	    data = (scroll & 1) ? 0xff : 0x0f;
-	    break;
-	case 4:
-	    data = scroll2_b[scroll & 3];
-	    break;
-	case 5:
-	    data = scroll2_f[scroll & 3];
-	    break;
-	case 6:
-	    data = scroll1_b[scroll & 7];
-	    break;
-	case 7:
-	    data = scroll1_f[scroll & 7];
-	    break;
-	}
-	scroller(count, offset, data);
+	scroller(level1_types[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
     scroll++;
