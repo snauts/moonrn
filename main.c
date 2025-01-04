@@ -300,6 +300,13 @@ static void clear_player(void) {
     }
 }
 
+static void erase_player(void) {
+    byte y = pos;
+    for (byte i = 0; i < 9; i++) {
+	map_y[y++][8] = 0;
+    }
+}
+
 static byte draw_player(void) {
     byte y = pos;
     const byte *ptr = frame;
@@ -400,6 +407,20 @@ static void wave_before_start(void) {
     }
 }
 
+static void drown_player(void) {
+    ticker = 0;
+    frame = drowner;
+    while (frame < drowner + sizeof(drowner)) {
+	if (ticker == 6) {
+	    frame += 8;
+	    ticker = 0;
+	}
+	draw_player();
+	wait_vblank();
+	clear_player();
+    }
+}
+
 static void move_level(void) {
 }
 
@@ -430,6 +451,9 @@ static void game_loop(void) {
 	out_fe(0x0);
 	wait_vblank();
     }
+
+    erase_player();
+    drown_player();
 }
 
 void reset(void) {
