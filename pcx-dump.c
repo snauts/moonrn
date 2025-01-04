@@ -15,6 +15,11 @@ struct Header {
     short w, h;
 } header;
 
+int line_count = 0;
+struct Line {
+    int x, y, type, length;
+} line[128];
+
 void hexdump(unsigned char *buf, int size) {
     for (int i = 0; i < size; i++) {
 	fprintf(stderr, "%02x ", buf[i]);
@@ -266,6 +271,29 @@ static void save_bitmap(unsigned char *buf, int size) {
     }
 }
 
+static void save_level(unsigned char *buf) {
+    int start = -1;
+    int offset = 0;
+    for (int y = 0; y < header.h; y++) {
+	for (int x = 0; x < header.w; x++) {
+	    if (buf[offset] != 0 && start == -1) {
+		start = x;
+	    }
+	    if (buf[offset] == 0 && start != -1) {
+		struct Line *ptr = line + line_count;
+		ptr->x = start;
+		ptr->y = y;
+		ptr->length = x - start;
+		ptr->type = buf[offset - 1];
+		line_count++;
+		start = -1;
+	    }
+	    offset++;
+	}
+	start = -1;
+    }
+}
+
 static unsigned char *read_pcx(const char *file) {
     struct stat st;
     int palette_offset = 16;
@@ -312,6 +340,7 @@ int main(int argc, char **argv) {
 	printf("USAGE: pcx-dump [option] file.pcx\n");
 	printf("  -c   save compressed image\n");
 	printf("  -p   save raw pixel data\n");
+	printf("  -l   save level data\n");
 	return 0;
     }
 
@@ -321,7 +350,12 @@ int main(int argc, char **argv) {
     void *buf = read_pcx(header.name);
     if (buf == NULL) return -ENOENT;
 
-    save_bitmap(buf, header.w * header.h);
+    if (option == 'l') {
+	save_level(buf);
+    }
+    else {
+	save_bitmap(buf, header.w * header.h);
+    }
     free(buf);
     return 0;
 }

@@ -424,6 +424,9 @@ static void drown_player(void) {
     }
 }
 
+static void prepare_level(void) {
+}
+
 static void move_level(void) {
 }
 
@@ -433,6 +436,7 @@ static void game_loop(void) {
     display_strip(&horizon, 0);
     setup_moon_shade();
     wave_before_start();
+    prepare_level();
     frame = runner;
     draw_player();
     wait_vblank();
