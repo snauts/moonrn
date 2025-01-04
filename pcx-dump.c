@@ -17,8 +17,13 @@ struct Header {
 
 int line_count = 0;
 struct Line {
-    int x, y, type, length;
+    int x, y, type;
 } line[128];
+
+static unsigned short pixel_addr(int x, int y) {
+    int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
+    return 0x4000 + (f << 5) + (x >> 3);
+}
 
 void hexdump(unsigned char *buf, int size) {
     for (int i = 0; i < size; i++) {
@@ -271,27 +276,44 @@ static void save_bitmap(unsigned char *buf, int size) {
     }
 }
 
+static void add_line(int x, int y, int type, int end) {
+    struct Line *ptr = line + line_count;
+    ptr->x = x;
+    ptr->y = y;
+    ptr->type = 2 * (type - 1) + end;
+    line_count++;
+}
+
 static void save_level(unsigned char *buf) {
     int start = -1;
     int offset = 0;
     for (int y = 0; y < header.h; y++) {
 	for (int x = 0; x < header.w; x++) {
-	    if (buf[offset] != 0 && start == -1) {
+	    int type = buf[offset];
+	    if (start == -1 && type != 0) {
+		add_line(x, y, type, 0);
 		start = x;
 	    }
-	    if (buf[offset] == 0 && start != -1) {
-		struct Line *ptr = line + line_count;
-		ptr->x = start;
-		ptr->y = y;
-		ptr->length = x - start;
-		ptr->type = buf[offset - 1];
-		line_count++;
+	    if (start != -1 && type == 0) {
+		add_line(x, y, buf[offset - 1], 1);
 		start = -1;
 	    }
 	    offset++;
 	}
 	start = -1;
     }
+
+    int n = 0;
+    unsigned char level[4 * line_count];
+    for (int i = 0; i < line_count; i++) {
+	unsigned short addr = pixel_addr(0, line[i].y);
+	level[n++] = addr & 0xff;
+	level[n++] = addr >> 8;
+	level[n++] = line[i].x / 8;
+	level[n++] = line[i].type;
+    }
+
+    save_raw(level, sizeof(level));
 }
 
 static unsigned char *read_pcx(const char *file) {
