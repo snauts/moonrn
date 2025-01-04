@@ -387,9 +387,24 @@ static void setup_moon_shade(void) {
     memset(map_y[pos + 9], 0xaa, 9);
 }
 
+static void animate_wave(void) {
+    frame = waver + (ticker & 16 ? 0 : 8);
+}
+
+static void wave_before_start(void) {
+    while (!SPACE_DOWN()) {
+	animate_wave();
+	draw_player();
+	wait_vblank();
+	clear_player();
+    }
+}
+
 static void game_loop(void) {
     display_strip(&horizon, 0);
     setup_moon_shade();
+
+    wave_before_start();
 
     byte drown = 0;
     draw_player();
