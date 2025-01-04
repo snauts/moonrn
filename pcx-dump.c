@@ -304,14 +304,16 @@ static void save_level(unsigned char *buf) {
     }
 
     int n = 0;
-    unsigned char level[4 * line_count];
+    unsigned char level[4 * line_count + 2];
     for (int i = 0; i < line_count; i++) {
-	unsigned short addr = pixel_addr(0, line[i].y);
+	unsigned short addr = pixel_addr(0, line[i].y + 64);
 	level[n++] = addr & 0xff;
 	level[n++] = addr >> 8;
 	level[n++] = line[i].x / 8;
 	level[n++] = line[i].type;
     }
+    level[n++] = 0;
+    level[n++] = 0;
 
     save_raw(level, sizeof(level));
 }
