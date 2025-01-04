@@ -240,10 +240,10 @@ static void save_image(unsigned char *pixel, int pixel_size,
     printf("};\n");
 }
 
-static void save_raw(unsigned char *pixel, int pixel_size) {
+static void save_raw(unsigned char *pixel, int pixel_size, char *extra) {
     char name[256];
     remove_extension(header.name, name);
-    printf("static const byte %s[] = {\n", name);
+    printf("static const byte %s%s[] = {\n", name, extra);
     dump_buffer(pixel, pixel_size, 1);
     printf("};\n");
 }
@@ -271,7 +271,7 @@ static void save_bitmap(unsigned char *buf, int size) {
 	save_image(pixel, pixel_size, color, color_size);
 	break;
     case 'p':
-	save_raw(pixel, pixel_size);
+	save_raw(pixel, pixel_size, "");
 	break;
     }
 }
@@ -282,6 +282,12 @@ static void add_line(int x, int y, int type, int end) {
     ptr->y = y;
     ptr->type = 2 * (type - 1) + end;
     line_count++;
+}
+
+static int compare(const void *p1, const void *p2) {
+    const unsigned char *b1 = p1;
+    const unsigned char *b2 = p2;
+    return b1[3] > b2[3];
 }
 
 static void save_level(unsigned char *buf) {
@@ -304,18 +310,25 @@ static void save_level(unsigned char *buf) {
     }
 
     int n = 0;
+    unsigned char types[8];
     unsigned char level[4 * line_count + 2];
+
+    memset(types, 0, sizeof(types));
     for (int i = 0; i < line_count; i++) {
+	unsigned char type = line[i].type;
 	unsigned short addr = pixel_addr(0, line[i].y + 64);
 	level[n++] = addr & 0xff;
 	level[n++] = addr >> 8;
 	level[n++] = line[i].x / 8;
-	level[n++] = line[i].type;
+	level[n++] = type;
+	types[type]++;
     }
+    qsort(level, line_count, 4, compare);
     level[n++] = 0;
     level[n++] = 0;
 
-    save_raw(level, sizeof(level));
+    save_raw(level, sizeof(level), "");
+    save_raw(types, sizeof(types), "_types");
 }
 
 static unsigned char *read_pcx(const char *file) {
