@@ -124,10 +124,11 @@ static void clear_screen(void) {
 
 static void put_char(char symbol, byte x, byte y) {
     byte shift = x & 7;
+    byte offset = x >> 3;
     byte *addr = (byte *) 0x3c00 + (symbol << 3);
     for (byte i = 0; i < 8; i++) {
 	byte data = *addr++;
-	byte *ptr = map_y[y + i] + (x >> 3);
+	byte *ptr = map_y[y + i] + offset;
 	ptr[0] |= (data >> shift);
 	ptr[1] |= (data << (8 - shift));
     }
@@ -146,20 +147,22 @@ static byte leading(char symbol) {
     byte i;
     byte mask = char_mask(symbol);
     for (i = 0; i < 8; i++) {
-	if (mask & 0x80) return i;
+	if (mask & 0x80) goto done;
 	mask = mask << 1;
     }
-    return i;
+  done:
+    return i - 1;
 }
 
 static byte trailing(char symbol) {
     byte i;
     byte mask = char_mask(symbol);
     for (i = 0; i < 8; i++) {
-	if (mask & 1) return i;
+	if (mask & 1) goto done;
 	mask = mask >> 1;
     }
-    return i;
+  done:
+    return 8 - i;
 }
 
 static void put_str(const char *msg, byte x, byte y) {
@@ -169,10 +172,10 @@ static void put_str(const char *msg, byte x, byte y) {
 	    x = x + 4;
 	}
 	else {
-	    byte lead = leading(symbol) - 1;
+	    byte lead = leading(symbol);
 	    if (lead <= x) x -= lead;
 	    put_char(symbol, x, y);
-	    x += 8 - trailing(symbol);
+	    x += trailing(symbol);
 	}
     }
 }
