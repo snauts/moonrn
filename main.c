@@ -290,6 +290,16 @@ static byte contact(void) {
     return map_y[pos + 8][8];
 }
 
+static void double_jump(byte space) {
+    if (!space) {
+	if (jump == 0) jump++;
+    }
+    else if (jump == 1) {
+	vel = VELOCITY;
+	jump++;
+    }
+}
+
 static void move_player(void) {
     byte space = SPACE_DOWN();
     if (vel > 0 && contact()) {
@@ -298,14 +308,8 @@ static void move_player(void) {
     }
     else {
 	byte new;
-	if (jump == 0 && !space) {
-	    jump++;
-	}
-	if (jump == 1 && space) {
-	    vel = VELOCITY;
-	    jump++;
-	}
 	vel = vel + 1;
+	double_jump(space);
 	new = pos + (vel >> 2);
 	if (vel > 0) {
 	    for (; pos < new; pos++) {
