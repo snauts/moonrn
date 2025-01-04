@@ -15,6 +15,7 @@ pcx:
 	@./pcx-dump -c horizon.pcx >> data.h
 	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h
+	@./pcx-dump -p credits.pcx >> data.h
 
 prg: pcx
 	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o crawlo.ihx

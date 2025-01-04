@@ -227,18 +227,24 @@ static void lit_line(byte offset, byte color) {
 }
 
 static void show_title(void) {
-    word offset = 0x140;
+    word offset = 0x120;
     display_strip(&title, 0);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], offset, 0x01);
 	offset += 32;
     }
 
+    const byte *ptr = credits;
+    for (byte i = 0; i < 8; i++) {
+	memcpy(map_y[184 + i], ptr, 8);
+	ptr += 8;
+    }
+
     byte roll = 0;
     while (!SPACE_DOWN()) {
 	wait_vblank();
-	lit_line(roll - 24, 0x01);
-	lit_line(roll - 12, 0x41);
+	lit_line(roll - 32, 0x01);
+	lit_line(roll - 16, 0x41);
 	roll = (roll + 1) & 0x3f;
     }
 }
