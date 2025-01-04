@@ -287,7 +287,7 @@ static void add_line(int x, int y, int type, int end) {
 static int compare(const void *p1, const void *p2) {
     const unsigned char *b1 = p1;
     const unsigned char *b2 = p2;
-    return b1[3] > b2[3];
+    return b1[3] < b2[3];
 }
 
 static void save_level(unsigned char *buf) {
@@ -321,7 +321,7 @@ static void save_level(unsigned char *buf) {
 	level[n++] = addr >> 8;
 	level[n++] = line[i].x / 8;
 	level[n++] = type;
-	types[type]++;
+	types[7 - type]++;
     }
     qsort(level, line_count, 4, compare);
     level[n++] = 0;
