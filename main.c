@@ -243,11 +243,14 @@ static void show_title(void) {
     }
 }
 
+static int8 vel;
 static byte pos;
+static byte jump;
 static byte lives;
 static const byte *frame;
 
-#define MAX_WAVES 160
+#define MAX_WAVES	128
+#define VELOCITY	-12
 
 static byte wave_count;
 
@@ -256,6 +259,8 @@ static byte *wave_addr[MAX_WAVES];
 
 static void init_variables(void) {
     pos = 128;
+    vel = 0;
+    jump = 0;
     lives = 6;
     wave_count = 0;
     frame = runner;
@@ -281,10 +286,46 @@ static byte draw_player(void) {
     return 0;
 }
 
+static byte contact(void) {
+    return map_y[pos + 8][8];
+}
+
+static void move_player(void) {
+    byte space = SPACE_DOWN();
+    if (vel > 0 && contact()) {
+	vel = space ? VELOCITY : 0;
+	jump = 0;
+    }
+    else {
+	byte new;
+	if (jump == 0 && !space) {
+	    jump++;
+	}
+	if (jump == 1 && space) {
+	    vel = VELOCITY;
+	    jump++;
+	}
+	vel = vel + 1;
+	new = pos + (vel >> 2);
+	if (vel > 0) {
+	    for (; pos < new; pos++) {
+		if (contact()) return;
+	    }
+	}
+	pos = new;
+    }
+}
+
 static void animate_player(void) {
-    if (ticker & 1) frame += 8;
-    if (frame - runner >= 64) {
-	frame = runner;
+    move_player();
+    if (!contact()) {
+	frame = runner + (jump == 2 ? 0 : 48);
+    }
+    else {
+	if (ticker & 1) frame += 8;
+	if (frame - runner >= 64) {
+	    frame = runner;
+	}
     }
 }
 
@@ -312,6 +353,7 @@ static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
+    memset(map_y[pos + 8], 0xff, 9);
 }
 
 static void game_loop(void) {
@@ -320,7 +362,7 @@ static void game_loop(void) {
 
     byte drown = 0;
     draw_player();
-    while (!drown) {
+    while (!drown && pos < 184) {
 	wait_vblank();
 
 	/* draw */
