@@ -384,6 +384,7 @@ static void setup_moon_shade(void) {
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
     memset(map_y[pos + 8], 0xff, 9);
+    memset(map_y[pos + 9], 0xaa, 9);
 }
 
 static void game_loop(void) {
