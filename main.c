@@ -82,6 +82,10 @@ static void wait_vblank(void) {
     while (!vblank) { }
 }
 
+static void delay(byte n) {
+    while (n-- > 0) wait_vblank();
+}
+
 static void setup_system(void) {
 #if defined(ZXS)
     byte top = (byte) ((IRQ_BASE >> 8) - 1);
@@ -440,6 +444,21 @@ static void prepare_level(byte data) {
     }
 }
 
+static const byte fade_in[] =  {
+    0x18, 0x3c, 0x7e, 0xff,
+};
+static const byte fade_out[] = {
+    0x7e, 0x3c, 0x18, 0x00,
+};
+
+static void fade_level(const byte *ptr) {
+    while (*ptr != 0x00 && *ptr != 0xff) {
+	prepare_level(*ptr++);
+	delay(3);
+    }
+    prepare_level(*ptr);
+}
+
 static const byte *level_ptr;
 static void scroller(byte count, byte offset, byte data) {
     memset(wave_data + wave_count, data, count);
@@ -532,6 +551,12 @@ static byte level_done(void) {
     return scroll > 512;
 }
 
+static void stop_player(void) {
+    clear_player();
+    animate_wave();
+    draw_player();
+}
+
 static void game_loop(void) {
     byte drown = 0;
 
@@ -540,7 +565,7 @@ static void game_loop(void) {
   restart:
     scroll = 0;
     wave_count = 0;
-    prepare_level(0xff);
+    fade_level(fade_in);
     wave_before_start();
     frame = runner;
     draw_player();
@@ -556,8 +581,7 @@ static void game_loop(void) {
 	/* calculate */
 	move_level();
 	if (level_done()) {
-	    clear_player();
-	    prepare_level(0);
+	    fade_level(fade_out);
 	    goto restart;
 	}
 
