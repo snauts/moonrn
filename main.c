@@ -310,10 +310,9 @@ static void clear_player(void) {
     }
 }
 
-static void erase_player(void) {
-    byte y = pos;
+static void erase_player(byte x, byte y) {
     for (byte i = 0; i < 9; i++) {
-	map_y[y++][8] = 0;
+	map_y[y++][x] = 0;
     }
 }
 
@@ -539,7 +538,7 @@ static void game_loop(void) {
 	wait_vblank();
     }
 
-    erase_player();
+    erase_player(8, pos);
     drown_player();
 }
 
