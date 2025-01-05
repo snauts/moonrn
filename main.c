@@ -414,8 +414,12 @@ static void animate_wave(void) {
     frame = waver + (ticker & 16 ? 0 : 8);
 }
 
+static byte on_bridge(void) {
+    return pos == 128;
+}
+
 static void wave_before_start(void) {
-    while (pos == 128 && !SPACE_DOWN()) {
+    while (on_bridge() && !SPACE_DOWN()) {
 	animate_wave();
 	draw_player();
 	wait_vblank();
@@ -551,6 +555,9 @@ static byte level_done(void) {
     return scroll > 512;
 }
 
+static void change_level(void) {
+}
+
 static void stop_player(void) {
     clear_player();
     animate_wave();
@@ -558,7 +565,7 @@ static void stop_player(void) {
 }
 
 static void reset_player_sprite(void) {
-    if (pos == 128) frame = runner;
+    if (on_bridge()) frame = runner;
 }
 
 static void game_loop(void) {
@@ -586,8 +593,9 @@ static void game_loop(void) {
 	/* calculate */
 	move_level();
 	if (level_done()) {
-	    if (pos == 128) stop_player();
+	    if (on_bridge()) stop_player();
 	    fade_level(fade_out);
+	    change_level();
 	    goto restart;
 	}
 
