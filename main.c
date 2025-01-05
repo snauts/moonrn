@@ -315,7 +315,7 @@ static void clear_player(void) {
 }
 
 static void erase_player(byte x, byte y) {
-    for (byte i = 0; i < 9; i++) {
+    for (byte i = 0; i < 8; i++) {
 	map_y[y++][x] = 0;
     }
 }
