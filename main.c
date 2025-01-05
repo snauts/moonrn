@@ -395,13 +395,15 @@ static void shade_cone(byte *ptr, byte color, byte width, byte step) {
     }
 }
 
+static const byte bridge[] = { 0xff, 0x22, 0x44 };
+
 static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
-    memset(map_y[pos + 0x8], 0xff, 9);
-    memset(map_y[pos + 0x9], 0x22, 9);
-    memset(map_y[pos + 0xa], 0x44, 9);
+    for (byte i = 0; i <= 2; i++) {
+	memset(map_y[pos + 0x8 + i], bridge[i], 9);
+    }
 }
 
 static void animate_wave(void) {
@@ -488,12 +490,25 @@ static byte scroll_data(byte i) {
     return 0x00;
 }
 
-static void clear_bridge(void) {
+static void draw_and_clear_bridge(void) {
+    word length = 256;
     byte offset = scroll >> 3;
-    if (offset <= 8) {
+
+    if (scroll >= length) {
+	byte data = scroll_data(7);
+	for (byte i = 0; i <= 2; i++) {
+	    byte *addr = map_y[136 + i] + 31 - (offset & 0x1f);
+	    wave_data[wave_count] = data & bridge[i];
+	    wave_addr[wave_count] = addr;
+	    wave_count++;
+	}
+    }
+
+    if (scroll < 72 || scroll >= length + 72) {
+	byte from = scroll < 72 ? 8 : 40;
 	byte data = scroll_data(6);
 	for (byte i = 136; i <= 138; i++) {
-	    byte *addr = map_y[i] + 8 - offset;
+	    byte *addr = map_y[i] + from - (offset & 0x1f);
 	    wave_data[wave_count] = data & *addr;
 	    wave_addr[wave_count] = addr;
 	    wave_count++;
@@ -509,7 +524,7 @@ static void move_level(void) {
 	scroller(level1[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
-    clear_bridge();
+    draw_and_clear_bridge();
     scroll++;
 }
 
