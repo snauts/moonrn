@@ -621,7 +621,6 @@ static void game_loop(void) {
 
     reset_variables();
     setup_moon_shade();
-    select_level(level);
   restart:
     scroll = 0;
     wave_count = 0;
@@ -665,8 +664,10 @@ static void game_over(void) {
 }
 
 static void top_level(void) {
+    byte grass;
     display_strip(&horizon, 0);
-    byte grass = map_y[63][8];
+    grass = map_y[63][8];
+    select_level(level);
 
     while (lives-- >= 0) {
 	game_loop();
