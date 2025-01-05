@@ -192,6 +192,15 @@ static void put_str(const char *msg, byte x, byte y) {
     }
 }
 
+static byte str_len(const char *msg) {
+    byte len = 0;
+    while (*msg != 0) {
+	char symbol = *(msg++);
+	len += symbol == ' ' ? 4 : trailing(symbol) - leading(symbol);
+    }
+    return len;
+}
+
 static void uncompress(byte *dst, const byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
@@ -305,6 +314,7 @@ static byte *wave_addr[MAX_WAVES];
 
 static const struct Level level_list[] = {
     { level1, "Liezeris", 256 },
+    { level2, "Engure",   256 },
 };
 
 static void reset_variables(void) {
@@ -570,10 +580,20 @@ static byte level_done(void) {
     return scroll > level_length + 256;
 }
 
+static void level_message(const char *msg) {
+    byte spacing = (80 - str_len(msg)) >> 1;
+    memset((void *) 0x5893, 1, 10);
+    for (byte y = 32; y < 40; y++) {
+	memset(map_y[y] + 0x13, 0, 10);
+    }
+    put_str(msg, 152 + spacing, 32);
+}
+
 static void select_level(byte i) {
     const struct Level *ptr = level_list + i;
     current_level = ptr->level;
     level_length = ptr->length;
+    level_message(ptr->msg);
 }
 
 static void change_level(void) {
