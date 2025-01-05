@@ -17,7 +17,7 @@ struct Header {
 
 int line_count = 0;
 struct Line {
-    int x, y, type;
+    int x, y, len, type;
 } line[128];
 
 static unsigned short pixel_addr(int x, int y) {
@@ -280,7 +280,9 @@ static void add_line(int x, int y, int type, int end) {
     struct Line *ptr = line + line_count;
     ptr->x = x;
     ptr->y = y;
+    ptr->len = 0;
     ptr->type = 2 * (type - 1) + end;
+    if (end) ptr[-1].len = ptr->x - ptr[-1].x;
     line_count++;
 }
 
@@ -321,7 +323,7 @@ static void save_level(unsigned char *buf) {
 	level[n++] = addr & 0xff;
 	level[n++] = addr >> 8;
 	level[n++] = line[i].x / 8;
-	level[n++] = type;
+	level[n++] = line[i].len / 8;
 	level[7 - type]++;
     }
 

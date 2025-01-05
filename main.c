@@ -427,6 +427,14 @@ static void drown_player(void) {
 }
 
 static void prepare_level(void) {
+    byte *ptr = level1 + 8;
+    for (byte i = 0; i < 8; i++) {
+	for (byte n = 0; n < level1[i]; n++) {
+	    byte *addr = (* (byte **) ptr) + ptr[2];
+	    memset(addr + 1, 0xff, ptr[3]);
+	    ptr += 4;
+	}
+    }
 }
 
 static const byte *level_ptr;
@@ -494,8 +502,8 @@ static void game_loop(void) {
 
     display_strip(&horizon, 0);
     setup_moon_shade();
-    wave_before_start();
     prepare_level();
+    wave_before_start();
     frame = runner;
     draw_player();
     wait_vblank();
@@ -503,15 +511,18 @@ static void game_loop(void) {
 
     while (!drown && pos < 184) {
 	/* draw */
+	out_fe(0x1);
 	clear_player();
 	animate_player();
 	draw_pond_waves();
 	drown = draw_player();
 
 	/* calculate */
+	out_fe(0x5);
 	move_level();
 
 	/* done */
+	out_fe(0x0);
 	wait_vblank();
     }
 
