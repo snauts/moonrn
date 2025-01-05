@@ -419,13 +419,9 @@ static void wave_before_start(void) {
 }
 
 static void drown_player(void) {
-    ticker = 0;
     frame = drowner;
     while (frame < drowner + sizeof(drowner)) {
-	if (ticker == 6) {
-	    frame += 8;
-	    ticker = 0;
-	}
+	if ((ticker & 3) == 0) frame += 8;
 	draw_player();
 	wait_vblank();
 	clear_player();
@@ -528,7 +524,6 @@ static void game_loop(void) {
     frame = runner;
     draw_player();
     wait_vblank();
-    ticker = 0;
 
     while (!drown && pos < 184) {
 	/* draw */
