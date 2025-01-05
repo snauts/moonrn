@@ -276,7 +276,7 @@ static int8 vel;
 static byte pos;
 static byte jump;
 static byte lives;
-static byte scroll;
+static word scroll;
 static const byte *frame;
 
 #define MAX_WAVES	128
@@ -395,8 +395,9 @@ static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
-    memset(map_y[pos + 8], 0xff, 9);
-    memset(map_y[pos + 9], 0xaa, 9);
+    memset(map_y[pos + 0x8], 0xff, 9);
+    memset(map_y[pos + 0x9], 0x22, 9);
+    memset(map_y[pos + 0xa], 0x44, 9);
 }
 
 static void animate_wave(void) {
@@ -486,6 +487,19 @@ static byte scroll_data(byte i) {
     }
 }
 
+static void clear_bridge(void) {
+    byte offset = scroll >> 3;
+    if (offset <= 8) {
+	byte data = scroll_data(6);
+	for (byte i = 136; i <= 138; i++) {
+	    byte *addr = map_y[i] + 8 - offset;
+	    wave_data[wave_count] = data & *addr;
+	    wave_addr[wave_count] = addr;
+	    wave_count++;
+	}
+    }
+}
+
 static void move_level(void) {
     wave_count = 0;
     byte offset = scroll;
@@ -494,6 +508,7 @@ static void move_level(void) {
 	scroller(level1[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
+    clear_bridge();
     scroll++;
 }
 
@@ -511,18 +526,15 @@ static void game_loop(void) {
 
     while (!drown && pos < 184) {
 	/* draw */
-	out_fe(0x1);
 	clear_player();
 	animate_player();
 	draw_pond_waves();
 	drown = draw_player();
 
 	/* calculate */
-	out_fe(0x5);
 	move_level();
 
 	/* done */
-	out_fe(0x0);
 	wait_vblank();
     }
 
