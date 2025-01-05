@@ -287,6 +287,8 @@ static const byte *frame;
 #define VELOCITY	-12
 
 static byte wave_count;
+static word level_length;
+static const byte *current_level;
 
 static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
@@ -303,6 +305,8 @@ static void reset_variables(void) {
 static void init_variables(void) {
     lives = 6;
     frame = runner;
+    level_length = 256;
+    current_level = level1;
     reset_variables();
 }
 
@@ -438,9 +442,9 @@ static void drown_player(void) {
 }
 
 static void prepare_level(byte data) {
-    const byte *ptr = level1 + 8;
+    const byte *ptr = current_level + 8;
     for (byte i = 0; i < 8; i++) {
-	for (byte n = 0; n < level1[i]; n++) {
+	for (byte n = 0; n < current_level[i]; n++) {
 	    byte *addr = (* (byte **) ptr) + ptr[2];
 	    memset(addr + 1, data, ptr[3]);
 	    ptr += 4;
@@ -514,10 +518,9 @@ static byte scroll_data(byte i) {
 }
 
 static void draw_and_clear_bridge(void) {
-    word length = 256;
     byte offset = scroll >> 3;
 
-    if (scroll >= length) {
+    if (scroll >= level_length) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
 	    byte *addr = map_y[136 + i] + 31 - (offset & 0x1f);
@@ -527,7 +530,7 @@ static void draw_and_clear_bridge(void) {
 	}
     }
 
-    if (scroll < 72 || scroll >= length + 72) {
+    if (scroll < 72 || scroll >= level_length + 72) {
 	byte from = scroll < 72 ? 8 : 40;
 	byte data = scroll_data(6);
 	for (byte i = 136; i <= 138; i++) {
@@ -542,9 +545,9 @@ static void draw_and_clear_bridge(void) {
 static void move_level(void) {
     wave_count = 0;
     byte offset = scroll;
-    level_ptr = level1 + 8;
+    level_ptr = current_level + 8;
     for (byte i = 0; i < 8; i++) {
-	scroller(level1[i], offset, scroll_data(i));
+	scroller(current_level[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
     draw_and_clear_bridge();
@@ -552,7 +555,7 @@ static void move_level(void) {
 }
 
 static byte level_done(void) {
-    return scroll > 512;
+    return scroll > level_length + 256;
 }
 
 static void change_level(void) {
