@@ -411,7 +411,7 @@ static void animate_wave(void) {
 }
 
 static void wave_before_start(void) {
-    while (!SPACE_DOWN()) {
+    while (pos == 128 && !SPACE_DOWN()) {
 	animate_wave();
 	draw_player();
 	wait_vblank();
@@ -429,12 +429,12 @@ static void drown_player(void) {
     }
 }
 
-static void prepare_level(void) {
+static void prepare_level(byte data) {
     const byte *ptr = level1 + 8;
     for (byte i = 0; i < 8; i++) {
 	for (byte n = 0; n < level1[i]; n++) {
 	    byte *addr = (* (byte **) ptr) + ptr[2];
-	    memset(addr + 1, 0xff, ptr[3]);
+	    memset(addr + 1, data, ptr[3]);
 	    ptr += 4;
 	}
     }
@@ -528,12 +528,19 @@ static void move_level(void) {
     scroll++;
 }
 
+static byte level_done(void) {
+    return scroll > 512;
+}
+
 static void game_loop(void) {
     byte drown = 0;
 
     reset_variables();
     setup_moon_shade();
-    prepare_level();
+  restart:
+    scroll = 0;
+    wave_count = 0;
+    prepare_level(0xff);
     wave_before_start();
     frame = runner;
     draw_player();
@@ -548,6 +555,11 @@ static void game_loop(void) {
 
 	/* calculate */
 	move_level();
+	if (level_done()) {
+	    clear_player();
+	    prepare_level(0);
+	    goto restart;
+	}
 
 	/* done */
 	wait_vblank();
