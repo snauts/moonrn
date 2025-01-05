@@ -557,6 +557,10 @@ static void stop_player(void) {
     draw_player();
 }
 
+static void reset_player_sprite(void) {
+    if (pos == 128) frame = runner;
+}
+
 static void game_loop(void) {
     byte drown = 0;
 
@@ -566,8 +570,9 @@ static void game_loop(void) {
     scroll = 0;
     wave_count = 0;
     fade_level(fade_in);
+    erase_player(8, pos);
     wave_before_start();
-    frame = runner;
+    reset_player_sprite();
     draw_player();
     wait_vblank();
 
@@ -581,6 +586,7 @@ static void game_loop(void) {
 	/* calculate */
 	move_level();
 	if (level_done()) {
+	    if (pos == 128) stop_player();
 	    fade_level(fade_out);
 	    goto restart;
 	}
