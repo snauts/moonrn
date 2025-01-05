@@ -10,6 +10,12 @@ struct Image {
     word color_size;
 };
 
+struct Level {
+    const byte *level;
+    const char *msg;
+    word length;
+};
+
 #include "data.h"
 
 #define ADDR(obj)	((word) (obj))
@@ -20,6 +26,8 @@ struct Image {
 static volatile byte vblank;
 static volatile byte ticker;
 static byte *map_y[192];
+
+void reset(void);
 
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
@@ -280,11 +288,13 @@ static int8 vel;
 static byte pos;
 static byte jump;
 static int8 lives;
+static int8 level;
 static word scroll;
 static const byte *frame;
 
 #define MAX_WAVES	128
 #define VELOCITY	-12
+#define BRIDGE		128
 
 static byte wave_count;
 static word level_length;
@@ -293,20 +303,20 @@ static const byte *current_level;
 static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
+static const struct Level level_list[] = {
+    { level1, "Liezeris", 256 },
+};
+
 static void reset_variables(void) {
     vel = 0;
     jump = 0;
-    scroll = 0;
-    wave_count = 0;
-
-    pos = 128;
+    pos = BRIDGE;
 }
 
 static void init_variables(void) {
     lives = 6;
+    level = 0;
     frame = runner;
-    level_length = 256;
-    current_level = level1;
     reset_variables();
 }
 
@@ -419,7 +429,7 @@ static void animate_wave(void) {
 }
 
 static byte on_bridge(void) {
-    return pos == 128;
+    return pos == BRIDGE;
 }
 
 static void wave_before_start(void) {
@@ -517,6 +527,12 @@ static byte scroll_data(byte i) {
     return 0x00;
 }
 
+static void update_wave(byte *addr, byte data) {
+    wave_addr[wave_count] = addr;
+    wave_data[wave_count] = data;
+    wave_count++;
+}
+
 static void draw_and_clear_bridge(void) {
     byte offset = scroll >> 3;
 
@@ -524,9 +540,7 @@ static void draw_and_clear_bridge(void) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
 	    byte *addr = map_y[136 + i] + 31 - (offset & 0x1f);
-	    wave_data[wave_count] = data & bridge[i];
-	    wave_addr[wave_count] = addr;
-	    wave_count++;
+	    update_wave(addr, data & bridge[i]);
 	}
     }
 
@@ -535,9 +549,7 @@ static void draw_and_clear_bridge(void) {
 	byte data = scroll_data(6);
 	for (byte i = 136; i <= 138; i++) {
 	    byte *addr = map_y[i] + from - (offset & 0x1f);
-	    wave_data[wave_count] = data & *addr;
-	    wave_addr[wave_count] = addr;
-	    wave_count++;
+	    update_wave(addr, data & *addr);
 	}
     }
 }
@@ -558,7 +570,20 @@ static byte level_done(void) {
     return scroll > level_length + 256;
 }
 
+static void select_level(byte i) {
+    const struct Level *ptr = level_list + i;
+    current_level = ptr->level;
+    level_length = ptr->length;
+}
+
 static void change_level(void) {
+    level++;
+    if (level < SIZE(level_list)) {
+	select_level(level);
+    }
+    else {
+	reset();
+    }
 }
 
 static void stop_player(void) {
@@ -576,6 +601,7 @@ static void game_loop(void) {
 
     reset_variables();
     setup_moon_shade();
+    select_level(level);
   restart:
     scroll = 0;
     wave_count = 0;
