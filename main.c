@@ -480,10 +480,10 @@ static byte scroll_data(byte i) {
 
 static void move_level(void) {
     wave_count = 0;
-    level_ptr = level1;
     byte offset = scroll;
+    level_ptr = level1 + 8;
     for (byte i = 0; i < 8; i++) {
-	scroller(level1_types[i], offset, scroll_data(i));
+	scroller(level1[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
     scroll++;

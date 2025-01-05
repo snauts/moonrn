@@ -285,9 +285,9 @@ static void add_line(int x, int y, int type, int end) {
 }
 
 static int compare(const void *p1, const void *p2) {
-    const unsigned char *b1 = p1;
-    const unsigned char *b2 = p2;
-    return b1[3] < b2[3];
+    const struct Line *l1 = p1;
+    const struct Line *l2 = p2;
+    return l1->type < l2->type;
 }
 
 static void save_level(unsigned char *buf) {
@@ -309,11 +309,12 @@ static void save_level(unsigned char *buf) {
 	start = -1;
     }
 
-    int n = 0;
-    unsigned char types[8];
-    unsigned char level[4 * line_count + 2];
+    qsort(line, line_count, sizeof(struct Line), compare);
 
-    memset(types, 0, sizeof(types));
+    int n = 8;
+    unsigned char level[4 * line_count + n];
+    memset(level, 0, n);
+
     for (int i = 0; i < line_count; i++) {
 	unsigned char type = line[i].type;
 	unsigned short addr = pixel_addr(0, line[i].y + 64);
@@ -321,14 +322,10 @@ static void save_level(unsigned char *buf) {
 	level[n++] = addr >> 8;
 	level[n++] = line[i].x / 8;
 	level[n++] = type;
-	types[7 - type]++;
+	level[7 - type]++;
     }
-    qsort(level, line_count, 4, compare);
-    level[n++] = 0;
-    level[n++] = 0;
 
     save_raw(level, sizeof(level), "");
-    save_raw(types, sizeof(types), "_types");
 }
 
 static unsigned char *read_pcx(const char *file) {
