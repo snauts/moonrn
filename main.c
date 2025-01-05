@@ -287,14 +287,19 @@ static byte wave_count;
 static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
-static void init_variables(void) {
-    pos = 128;
+static void reset_variables(void) {
     vel = 0;
     jump = 0;
-    lives = 6;
     scroll = 0;
     wave_count = 0;
+
+    pos = 128;
+}
+
+static void init_variables(void) {
+    lives = 6;
     frame = runner;
+    reset_variables();
 }
 
 static void clear_player(void) {
@@ -428,7 +433,7 @@ static void drown_player(void) {
 }
 
 static void prepare_level(void) {
-    byte *ptr = level1 + 8;
+    const byte *ptr = level1 + 8;
     for (byte i = 0; i < 8; i++) {
 	for (byte n = 0; n < level1[i]; n++) {
 	    byte *addr = (* (byte **) ptr) + ptr[2];
@@ -485,6 +490,7 @@ static byte scroll_data(byte i) {
     case 7:
 	return scroll1_f[scroll & 7];
     }
+    return 0x00;
 }
 
 static void clear_bridge(void) {
@@ -515,7 +521,7 @@ static void move_level(void) {
 static void game_loop(void) {
     byte drown = 0;
 
-    display_strip(&horizon, 0);
+    reset_variables();
     setup_moon_shade();
     prepare_level();
     wave_before_start();
@@ -542,6 +548,17 @@ static void game_loop(void) {
     drown_player();
 }
 
+static void top_level(void) {
+    display_strip(&horizon, 0);
+    byte grass = map_y[63][8];
+
+    while (lives) {
+	game_loop();
+	map_y[63][8] = grass;
+	memset((void *) 0x4800, 0, 0x1000);
+    }
+}
+
 void reset(void) {
     SETUP_STACK();
     setup_system();
@@ -550,6 +567,6 @@ void reset(void) {
     init_variables();
     show_title();
     clear_screen();
-    game_loop();
+    top_level();
     for (;;) { }
 }
