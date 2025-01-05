@@ -275,7 +275,7 @@ static void show_title(void) {
 static int8 vel;
 static byte pos;
 static byte jump;
-static byte lives;
+static int8 lives;
 static word scroll;
 static const byte *frame;
 
@@ -542,15 +542,26 @@ static void game_loop(void) {
     drown_player();
 }
 
+static void game_over(void) {
+    clear_screen();
+    put_str("GAME OVER", 98, 92);
+    memset((void *) 0x5900, 1, 0x100);
+    while (!SPACE_DOWN()) { }
+    reset();
+}
+
 static void top_level(void) {
     display_strip(&horizon, 0);
     byte grass = map_y[63][8];
 
-    while (lives) {
+    while (lives-- >= 0) {
 	game_loop();
 	map_y[63][8] = grass;
 	memset((void *) 0x4800, 0, 0x1000);
+	if (lives >= 0) erase_player(21 + lives, 44);
     }
+
+    game_over();
 }
 
 void reset(void) {
