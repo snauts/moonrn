@@ -451,13 +451,32 @@ static void wave_before_start(void) {
     }
 }
 
+static void vblank_delay(word ticks) {
+    for (word i = 0; i < ticks; i++) { if (vblank) break; }
+}
+
+static byte drown_sound(word period) {
+    vblank = 0;
+    while (!vblank) {
+	out_fe(0x10);
+	vblank_delay(period);
+	out_fe(0x0);
+	vblank_delay(period);
+    }
+}
+
 static void drown_player(void) {
+    word period = 20;
     frame = drowner;
     while (frame < drowner + sizeof(drowner)) {
-	if ((ticker & 3) == 0) frame += 8;
+	if ((ticker & 3) == 0) {
+	    period -= 30;
+	    frame += 8;
+	}
 	draw_player();
-	wait_vblank();
+	drown_sound(period);
 	clear_player();
+	period += 10;
     }
 }
 
