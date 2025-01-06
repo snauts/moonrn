@@ -202,6 +202,10 @@ static byte str_len(const char *msg) {
     return len;
 }
 
+static byte str_offset(const char *msg, byte from) {
+    return from - (str_len(msg) >> 1);
+}
+
 static void uncompress(byte *dst, const byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
@@ -627,12 +631,11 @@ static byte level_done(void) {
 }
 
 static void level_message(const char *msg) {
-    byte spacing = (80 - str_len(msg)) >> 1;
     memset((void *) 0x5893, 1, 10);
     for (byte y = 32; y < 40; y++) {
 	memset(map_y[y] + 0x13, 0, 10);
     }
-    put_str(msg, 152 + spacing, 32);
+    put_str(msg, 152 + str_offset(msg, 40), 32);
 }
 
 static void select_level(byte i) {
@@ -643,13 +646,25 @@ static void select_level(byte i) {
     level_message(ptr->msg);
 }
 
+static void end_game(const char *msg) {
+    clear_screen();
+    put_str(msg, str_offset(msg, 128), 92);
+    memset((void *) 0x5900, 1, 0x100);
+}
+
+static void game_done(void) {
+    end_game("CHALLENGE COMPLETED");
+    while (!SPACE_DOWN()) { }
+    reset();
+}
+
 static void change_level(void) {
     level++;
     if (level < SIZE(level_list)) {
 	select_level(level);
     }
     else {
-	reset();
+	game_done();
     }
 }
 
@@ -711,9 +726,7 @@ static void game_loop(void) {
 }
 
 static void game_over(void) {
-    clear_screen();
-    put_str("GAME OVER", 98, 92);
-    memset((void *) 0x5900, 1, 0x100);
+    end_game("GAME OVER");
     while (!SPACE_DOWN()) { }
     reset();
 }
