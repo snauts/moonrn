@@ -310,7 +310,7 @@ static const byte *frame;
 #define VELOCITY	-12
 #define STANDING	128
 #define BRIDGE_LEN	72
-#define BRIDGE_TOP	(STANDING + 8)
+#define BRIDGE_TOP	136
 
 static byte wave_count;
 static byte level_mask;
