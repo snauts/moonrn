@@ -323,6 +323,7 @@ static byte *wave_addr[MAX_WAVES];
 static const struct Level level_list[] = {
     { level1, "Liezeris", 256, 0x1f },
     { level2, "Titikaka", 256, 0x1f },
+    { level3, "Baikal",   256, 0x1f },
 };
 
 static void reset_variables(void) {
