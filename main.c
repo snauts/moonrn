@@ -412,9 +412,9 @@ static void animate_player(void) {
 }
 
 static void draw_pond_waves(void) {
-    for (byte i = 0; i < wave_count; i++) {
-	*wave_addr[i] = wave_data[i];
-    }
+    byte *data = wave_data;
+    byte **addr = wave_addr;
+    while (*addr) **addr++ = *data++;
 }
 
 static void shade_cone(byte *ptr, byte color, byte width, byte step) {
@@ -609,6 +609,7 @@ static void move_level(void) {
 	if (i & 1) offset >>= 1;
     }
     draw_and_clear_bridge();
+    wave_addr[wave_count] = 0;
     scroll++;
 }
 
