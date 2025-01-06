@@ -311,6 +311,7 @@ static const byte *frame;
 #define STANDING	128
 #define BRIDGE_LEN	72
 #define BRIDGE_TOP	136
+#define WAVE_TYPES	8
 
 static byte level_mask;
 static word level_length;
@@ -436,6 +437,11 @@ static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
+#if 1
+    memset((void *) 0x5800, 0x28 | 5, 0x100);
+    memset((void *) 0x5900, 0x00, 0x200);
+    memset((void *) 0x5a00, 0x08 | 1, 0x100);
+#endif
     for (byte i = 0; i <= 2; i++) {
 	memset(map_y[BRIDGE_TOP + i], bridge[i], BRIDGE_LEN / 8);
     }
@@ -503,7 +509,7 @@ static void fade_sound(byte ticks) {
 
 static byte total_waves(void) {
     byte total = 0;
-    for (byte i = 0; i < 8; i++) {
+    for (byte i = 0; i < WAVE_TYPES; i++) {
 	total += current_level[i];
     }
     return total;
@@ -511,7 +517,7 @@ static byte total_waves(void) {
 
 static void prepare_level(byte data) {
     byte total = total_waves();
-    const byte *ptr = current_level + 8;
+    const byte *ptr = current_level + WAVE_TYPES;
     for (byte n = 0; n < total; n++) {
 	byte offset = ptr[2] + 1;
 	if (offset < 0x20) {
@@ -604,8 +610,8 @@ static void move_level(void) {
     byte offset = scroll;
     current_data = wave_data;
     current_addr = wave_addr;
-    level_ptr = current_level + 8;
-    for (byte i = 0; i < 8; i++) {
+    level_ptr = current_level + WAVE_TYPES;
+    for (byte i = 0; i < WAVE_TYPES; i++) {
 	byte count = current_level[i];
 	memset(current_data, scroll_data(i), count);
 	current_data += count;
@@ -695,12 +701,14 @@ static void game_loop(void) {
 
     while (!drown && pos < 184) {
 	/* draw */
+	out_fe(0x01);
 	clear_player();
 	animate_player();
 	draw_pond_waves();
 	drown = draw_player();
 
 	/* calculate */
+	out_fe(0x05);
 	move_level();
 	if (level_done()) {
 	    advance_level();
@@ -708,6 +716,7 @@ static void game_loop(void) {
 	}
 
 	/* done */
+	out_fe(0x00);
 	wait_vblank();
     }
 
@@ -728,7 +737,7 @@ static void lose_cleanup(void) {
 }
 
 static void top_level(void) {
-    display_strip(&horizon, 0);
+    // display_strip(&horizon, 0);
     select_level(level);
 
     while (lives-- >= 0) {
@@ -745,7 +754,7 @@ void reset(void) {
     precalculate();
     clear_screen();
     init_variables();
-    show_title();
+    // show_title();
     clear_screen();
     top_level();
     for (;;) { }
