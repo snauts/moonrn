@@ -1,3 +1,5 @@
+//#define AY
+
 typedef signed char int8;
 typedef signed short int16;
 typedef unsigned char byte;
@@ -60,6 +62,26 @@ static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
     __asm__("push hl");
+
+#if defined(AY)
+    __asm__("ld a, (_enable_AY)");
+    __asm__("and a");
+    __asm__("jp z, skip_AY");
+
+    __asm__("push bc");
+    __asm__("push de");
+    __asm__("push ix");
+    __asm__("push iy");
+    __asm__("call _Player_Decode");
+    __asm__("call _Player_CopyAY");
+    __asm__("pop iy");
+    __asm__("pop ix");
+    __asm__("pop de");
+    __asm__("pop bc");
+
+    __asm__("skip_AY:");
+#endif
+
     __asm__("ld a, #1");
     __asm__("ld (_vblank), a");
     __asm__("ld hl, #_ticker");
@@ -95,7 +117,44 @@ static void delay(byte n) {
     while (n-- > 0) wait_vblank();
 }
 
+#if defined(AY)
+static byte enable_AY;
+#include "PT3player.c"
+
+static void start_music(void) {
+    Player_Resume();
+    enable_AY = 1;
+}
+
+static void stop_music(void) {
+    enable_AY = 0;
+    Player_Pause();
+}
+
+static void select_music(void *ptr) {
+    static void *current;
+    if (enable_AY) {
+	if (ptr == current) {
+	    return; /* already playing */
+	}
+	else {
+	    stop_music();
+	}
+    }
+    Player_Init();
+    Player_InitSong((word) ptr);
+    Player_Loop(1);
+
+    current = ptr;
+    start_music();
+}
+#endif
+
 static void setup_system(void) {
+#if defined(AY)
+    enable_AY = 0;
+#endif
+
 #if defined(ZXS)
     byte top = (byte) ((IRQ_BASE >> 8) - 1);
     word jmp_addr = (top << 8) | top;

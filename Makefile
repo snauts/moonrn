@@ -33,7 +33,7 @@ zxs:
 	@make tap
 
 fuse: zxs
-	fuse --machine 48 --no-confirm-actions -g 2x moonrn.tap
+	fuse --machine 128 --no-confirm-actions -g 2x moonrn.tap
 
 clean:
 	rm -f moonrn* pcx-dump data.h
