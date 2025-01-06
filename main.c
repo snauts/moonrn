@@ -717,7 +717,7 @@ static void game_over(void) {
     reset();
 }
 
-static void loose_cleanup(void) {
+static void lose_cleanup(void) {
     map_y[63][8] = map_y[63][9];
     memset((void *) 0x4800, 0, 0x1000);
     if (lives >= 0) erase_player(21 + lives, 44);
