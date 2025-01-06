@@ -514,7 +514,8 @@ static void prepare_level(byte data) {
     byte total = total_waves();
     const byte *ptr = current_level + WAVE_TYPES;
     for (byte n = 0; n < total; n++) {
-	byte offset = ptr[2] + 1;
+	byte offset = ptr[2];
+	offset = offset & level_mask;
 	if (offset < 0x20) {
 	    byte length = ptr[3];
 	    byte *addr = * (byte **) ptr + offset;
@@ -549,7 +550,7 @@ static const byte *level_ptr;
 static void scroller(byte count, byte offset) {
     while (count-- > 0) {
 	byte distance = level_ptr[2] - offset;
-	distance = distance & level_mask;
+	distance = (distance - 1) & level_mask;
 
 	if (distance < 0x20) {
 	    byte *addr = * (byte **) level_ptr;
