@@ -437,11 +437,6 @@ static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
-#if 1
-    memset((void *) 0x5800, 0x28 | 5, 0x100);
-    memset((void *) 0x5900, 0x00, 0x200);
-    memset((void *) 0x5a00, 0x08 | 1, 0x100);
-#endif
     for (byte i = 0; i <= 2; i++) {
 	memset(map_y[BRIDGE_TOP + i], bridge[i], BRIDGE_LEN / 8);
     }
@@ -701,14 +696,12 @@ static void game_loop(void) {
 
     while (!drown && pos < 184) {
 	/* draw */
-	out_fe(0x01);
 	clear_player();
 	animate_player();
 	draw_pond_waves();
 	drown = draw_player();
 
 	/* calculate */
-	out_fe(0x05);
 	move_level();
 	if (level_done()) {
 	    advance_level();
@@ -716,7 +709,6 @@ static void game_loop(void) {
 	}
 
 	/* done */
-	out_fe(0x00);
 	wait_vblank();
     }
 
@@ -737,7 +729,7 @@ static void lose_cleanup(void) {
 }
 
 static void top_level(void) {
-    // display_strip(&horizon, 0);
+    display_strip(&horizon, 0);
     select_level(level);
 
     while (lives-- >= 0) {
@@ -754,7 +746,7 @@ void reset(void) {
     precalculate();
     clear_screen();
     init_variables();
-    // show_title();
+    show_title();
     clear_screen();
     top_level();
     for (;;) { }
