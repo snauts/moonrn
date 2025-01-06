@@ -607,14 +607,18 @@ static byte *current_data;
 static byte **current_addr;
 static const byte *level_ptr;
 
-static void scroller(byte count, byte offset) {
+#define UPDATE_WAVE(addr, data) \
+    *current_addr++ = addr; \
+    *current_data++ = data;
+
+static void scroller(byte count, byte offset, byte data) {
     while (count-- > 0) {
 	byte distance = level_ptr[2] - offset;
 	distance = (distance - 1) & level_mask;
 
 	if (distance < 0x20) {
 	    byte *addr = * (byte **) level_ptr;
-	    *current_addr++ = addr + distance;
+	    UPDATE_WAVE(addr + distance, data);
 	}
 
 	level_ptr += 4;
@@ -636,11 +640,6 @@ static byte scroll_data(byte i) {
     return scroll_table[(i << 3) + (scroll & 7)];
 }
 
-static void update_wave(byte *addr, byte data) {
-    *current_addr++ = addr;
-    *current_data++ = data;
-}
-
 static void draw_and_clear_bridge(void) {
     byte offset = scroll >> 3;
 
@@ -648,7 +647,7 @@ static void draw_and_clear_bridge(void) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
 	    byte *addr = map_y[BRIDGE_TOP + i] + 31 - (offset & 0x1f);
-	    update_wave(addr, data & bridge[i]);
+	    UPDATE_WAVE(addr, data & bridge[i]);
 	}
     }
 
@@ -657,7 +656,7 @@ static void draw_and_clear_bridge(void) {
 	byte from = scroll < BRIDGE_LEN ? 8 : 40;
 	for (byte i = BRIDGE_TOP; i <= BRIDGE_TOP + 2; i++) {
 	    byte *addr = map_y[i] + from - (offset & 0x1f);
-	    update_wave(addr, data & *addr);
+	    UPDATE_WAVE(addr, data & *addr);
 	}
     }
 }
@@ -668,10 +667,7 @@ static void move_level(void) {
     current_addr = wave_addr;
     level_ptr = current_level + WAVE_TYPES;
     for (byte i = 0; i < WAVE_TYPES; i++) {
-	byte count = current_level[i];
-	memset(current_data, scroll_data(i), count);
-	current_data += count;
-	scroller(count, offset);
+	scroller(current_level[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
     draw_and_clear_bridge();
