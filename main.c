@@ -312,7 +312,6 @@ static const byte *frame;
 #define BRIDGE_LEN	72
 #define BRIDGE_TOP	136
 
-static byte wave_count;
 static byte level_mask;
 static word level_length;
 static const byte *current_level;
@@ -542,16 +541,18 @@ static void fade_level(const byte *ptr) {
     prepare_level(*ptr);
 }
 
+static byte *current_data;
+static byte **current_addr;
 static const byte *level_ptr;
-static void scroller(byte count, byte offset, byte data) {
-    memset(wave_data + wave_count, data, count);
 
+static void scroller(byte count, byte offset) {
     while (count-- > 0) {
-	byte distance = (level_ptr[2] - offset) & level_mask;
+	byte distance = level_ptr[2] - offset;
+	distance = distance & level_mask;
 
 	if (distance < 0x20) {
 	    byte *addr = * (byte **) level_ptr;
-	    wave_addr[wave_count++] = addr + distance;
+	    *current_addr++ = addr + distance;
 	}
 
 	level_ptr += 4;
@@ -574,9 +575,8 @@ static byte scroll_data(byte i) {
 }
 
 static void update_wave(byte *addr, byte data) {
-    wave_addr[wave_count] = addr;
-    wave_data[wave_count] = data;
-    wave_count++;
+    *current_addr++ = addr;
+    *current_data++ = data;
 }
 
 static void draw_and_clear_bridge(void) {
@@ -601,15 +601,19 @@ static void draw_and_clear_bridge(void) {
 }
 
 static void move_level(void) {
-    wave_count = 0;
     byte offset = scroll;
+    current_data = wave_data;
+    current_addr = wave_addr;
     level_ptr = current_level + 8;
     for (byte i = 0; i < 8; i++) {
-	scroller(current_level[i], offset, scroll_data(i));
+	byte count = current_level[i];
+	memset(current_data, scroll_data(i), count);
+	current_data += count;
+	scroller(count, offset);
 	if (i & 1) offset >>= 1;
     }
     draw_and_clear_bridge();
-    wave_addr[wave_count] = 0;
+    *current_addr = 0;
     scroll++;
 }
 
@@ -682,7 +686,6 @@ static void game_loop(void) {
 
   restart:
     scroll = 0;
-    wave_count = 0;
     fade_level(fade_in);
     erase_player(8, pos);
     wave_before_start();
