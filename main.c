@@ -14,6 +14,7 @@ struct Level {
     const byte *level;
     const char *msg;
     word length;
+    byte mask;
 };
 
 #include "data.h"
@@ -306,6 +307,7 @@ static const byte *frame;
 #define BRIDGE		128
 
 static byte wave_count;
+static byte level_mask;
 static word level_length;
 static const byte *current_level;
 
@@ -313,8 +315,8 @@ static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
 static const struct Level level_list[] = {
-    { level1, "Liezeris", 256 },
-    { level2, "Engure",   256 },
+    { level1, "Liezeris", 256, 0x1f },
+    { level2, "Engure",   256, 0x1f },
 };
 
 static void reset_variables(void) {
@@ -525,9 +527,13 @@ static void scroller(byte count, byte offset, byte data) {
     memset(wave_data + wave_count, data, count);
 
     while (count-- > 0) {
-	byte *addr = * (byte **) level_ptr;
-	addr += (level_ptr[2] - offset) & 0x1f;
-	wave_addr[wave_count++] = addr;
+	byte distance = (level_ptr[2] - offset) & level_mask;
+
+	if (distance < 0x20) {
+	    byte *addr = * (byte **) level_ptr;
+	    wave_addr[wave_count++] = addr + distance;
+	}
+
 	level_ptr += 4;
     }
 }
@@ -626,6 +632,7 @@ static void select_level(byte i) {
     const struct Level *ptr = level_list + i;
     current_level = ptr->level;
     level_length = ptr->length;
+    level_mask = ptr->mask;
     level_message(ptr->msg);
 }
 
