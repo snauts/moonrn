@@ -716,14 +716,12 @@ static void game_over(void) {
 }
 
 static void top_level(void) {
-    byte grass;
     display_strip(&horizon, 0);
-    grass = map_y[63][8];
     select_level(level);
 
     while (lives-- >= 0) {
 	game_loop();
-	map_y[63][8] = grass;
+	map_y[63][8] = map_y[63][9];
 	memset((void *) 0x4800, 0, 0x1000);
 	if (lives >= 0) erase_player(21 + lives, 44);
     }
