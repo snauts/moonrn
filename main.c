@@ -488,8 +488,15 @@ static void prepare_level(byte data) {
     const byte *ptr = current_level + 8;
     for (byte i = 0; i < 8; i++) {
 	for (byte n = 0; n < current_level[i]; n++) {
-	    byte *addr = (* (byte **) ptr) + ptr[2];
-	    memset(addr + 1, data, ptr[3]);
+	    byte offset = ptr[2] + 1;
+	    if (offset < 0x20) {
+		byte length = ptr[3];
+		byte *addr = * (byte **) ptr;
+		if (offset + length >= 0x20) {
+		    length = 0x20 - offset;
+		}
+		memset(addr + offset, data, length);
+	    }
 	    ptr += 4;
 	}
     }
