@@ -3,7 +3,7 @@ ARCH ?= -mz80
 CFLAGS += --nostdinc --nostdlib --no-std-crt0
 CFLAGS += --code-loc $(CODE) --data-loc $(DATA)
 
-ENTRY = grep _reset crawlo.map | cut -d " " -f 6
+ENTRY = grep _reset moonrn.map | cut -d " " -f 6
 
 all:
 	@echo "make zxs" - build .tap for ZX Spectrum
@@ -21,12 +21,11 @@ pcx:
 	@./pcx-dump -l level2.pcx >> data.h
 
 prg: pcx
-	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o crawlo.ihx
-	hex2bin crawlo.ihx > /dev/null
+	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o moonrn.ihx
+	hex2bin moonrn.ihx > /dev/null
 
 tap:
-	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) \
-		crawlo.bin -o moonrn.tap
+	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) moonrn.bin
 
 zxs:
 	CODE=0x8000 DATA=0x7000	TYPE=-DZXS make prg
@@ -36,4 +35,4 @@ fuse: zxs
 	fuse --machine 48 --no-confirm-actions -g 2x moonrn.tap
 
 clean:
-	rm -f crawlo* pcx-dump data.h moonrn.tap
+	rm -f moonrn* pcx-dump data.h
