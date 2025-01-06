@@ -1,4 +1,4 @@
-//#define AY
+#define AY
 
 typedef signed char int8;
 typedef signed short int16;
@@ -707,6 +707,7 @@ static void end_game(const char *msg) {
 
 static void game_done(void) {
     end_game("CHALLENGE COMPLETED");
+    display_strip(&outro, 2);
     while (!SPACE_DOWN()) { }
     reset();
 }
