@@ -455,7 +455,7 @@ static void vblank_delay(word ticks) {
     for (word i = 0; i < ticks; i++) { if (vblank) break; }
 }
 
-static byte drown_sound(word period) {
+static void sound_fx(word period) {
     vblank = 0;
     while (!vblank) {
 	out_fe(0x10);
@@ -474,7 +474,7 @@ static void drown_player(void) {
 	    frame += 8;
 	}
 	draw_player();
-	drown_sound(period);
+	sound_fx(period);
 	clear_player();
 	period += 10;
     }
@@ -498,12 +498,25 @@ static const byte fade_out[] = {
     0x7e, 0x3c, 0x18, 0x00,
 };
 
-static void fade_level(const byte *ptr) {
+static void fade_sound(word period) {
+    for (byte i = 0; i < 3; i++) {
+	sound_fx(period >> i);
+    }
+}
+
+static void fade_level(const byte *ptr, byte sound) {
+    word period = 0;
+    if (sound == 1) period = 500;
+    if (sound == 2) period = 300;
     while (*ptr != 0x00 && *ptr != 0xff) {
 	prepare_level(*ptr++);
-	delay(3);
+	if (period) {
+	    fade_sound(period);
+	    period -= 50;
+	}
     }
     prepare_level(*ptr);
+    if (sound == 1) fade_sound(period);
 }
 
 static const byte *level_ptr;
@@ -637,13 +650,14 @@ static void reset_player_sprite(void) {
 
 static void game_loop(void) {
     byte drown = 0;
+    byte sound = 0;
 
     reset_variables();
     setup_moon_shade();
   restart:
     scroll = 0;
     wave_count = 0;
-    fade_level(fade_in);
+    fade_level(fade_in, sound);
     erase_player(8, pos);
     wave_before_start();
     reset_player_sprite();
@@ -661,8 +675,9 @@ static void game_loop(void) {
 	move_level();
 	if (level_done()) {
 	    if (on_bridge()) stop_player();
-	    fade_level(fade_out);
+	    fade_level(fade_out, 1);
 	    change_level();
+	    sound = 2;
 	    goto restart;
 	}
 
