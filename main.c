@@ -591,8 +591,8 @@ static void draw_and_clear_bridge(void) {
     }
 
     if (scroll < BRIDGE_LEN || scroll >= BRIDGE_LEN + level_length) {
-	byte from = scroll < BRIDGE_LEN ? 8 : 40;
 	byte data = scroll_data(6);
+	byte from = scroll < BRIDGE_LEN ? 8 : 40;
 	for (byte i = BRIDGE_TOP; i <= BRIDGE_TOP + 2; i++) {
 	    byte *addr = map_y[i] + from - (offset & 0x1f);
 	    update_wave(addr, data & *addr);
@@ -675,10 +675,10 @@ static void advance_level(void) {
 
 static void game_loop(void) {
     byte drown = 0;
-
     fade_period = 0;
     reset_variables();
     setup_moon_shade();
+
   restart:
     scroll = 0;
     wave_count = 0;
@@ -717,15 +717,19 @@ static void game_over(void) {
     reset();
 }
 
+static void loose_cleanup(void) {
+    map_y[63][8] = map_y[63][9];
+    memset((void *) 0x4800, 0, 0x1000);
+    if (lives >= 0) erase_player(21 + lives, 44);
+}
+
 static void top_level(void) {
     display_strip(&horizon, 0);
     select_level(level);
 
     while (lives-- >= 0) {
 	game_loop();
-	map_y[63][8] = map_y[63][9];
-	memset((void *) 0x4800, 0, 0x1000);
-	if (lives >= 0) erase_player(21 + lives, 44);
+	lose_cleanup();
     }
 
     game_over();
