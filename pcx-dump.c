@@ -308,7 +308,11 @@ static void save_level(unsigned char *buf) {
 	    }
 	    offset++;
 	}
-	start = -1;
+	if (start != -1) {
+	    add_line(header.w, y, buf[offset - 1], 1);
+	    line[line_count - 1].x = 0;
+	    start = -1;
+	}
     }
 
     qsort(line, line_count, sizeof(struct Line), compare);
