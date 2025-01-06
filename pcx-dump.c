@@ -327,6 +327,7 @@ static void save_level(unsigned char *buf) {
 	level[7 - type]++;
     }
 
+    fprintf(stderr, "%s: %d\n", header.name, line_count);
     save_raw(level, sizeof(level), "");
 }
 
