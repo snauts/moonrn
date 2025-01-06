@@ -458,10 +458,12 @@ static void vblank_delay(word ticks) {
 static void sound_fx(word period, byte border) {
     vblank = 0;
     while (!vblank) {
-	out_fe(border | 0x10);
-	vblank_delay(period);
-	out_fe(0x0);
-	vblank_delay(period);
+	if (period) {
+	    out_fe(border | 0x10);
+	    vblank_delay(period);
+	    out_fe(0x0);
+	    vblank_delay(period);
+	}
     }
 }
 
@@ -511,10 +513,8 @@ static void fade_level(const byte *ptr, byte sound) {
     if (sound == 2) period = 300;
     while (*ptr != 0x00 && *ptr != 0xff) {
 	prepare_level(*ptr++);
-	if (period) {
-	    fade_sound(period);
-	    period -= 50;
-	}
+	fade_sound(period);
+	if (period) period -= 50;
     }
     prepare_level(*ptr);
     if (sound == 1) fade_sound(period);
