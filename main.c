@@ -460,12 +460,10 @@ static void vblank_delay(word ticks) {
 static void sound_fx(word period, byte border) {
     vblank = 0;
     while (!vblank) {
-	if (period) {
-	    out_fe(border | 0x10);
-	    vblank_delay(period);
-	    out_fe(0x0);
-	    vblank_delay(period);
-	}
+	out_fe(border | 0x10);
+	vblank_delay(period);
+	out_fe(0x0);
+	vblank_delay(period);
     }
 }
 
@@ -481,6 +479,20 @@ static void drown_player(void) {
 	sound_fx(period, 0);
 	clear_player();
 	period += 10;
+    }
+}
+
+static word fade_period;
+static void fade_sound(byte ticks) {
+    if (!fade_period) {
+	delay(ticks);
+    }
+    else {
+	for (byte i = 0; i < ticks; i++) {
+	    static const byte border[] = { 1, 5, 7 };
+	    sound_fx(fade_period >> i, border[i]);
+	}
+	fade_period -= 50;
     }
 }
 
@@ -500,6 +512,7 @@ static void prepare_level(byte data) {
 	    ptr += 4;
 	}
     }
+    fade_sound(3);
 }
 
 static const byte fade_in[] =  {
@@ -509,24 +522,11 @@ static const byte fade_out[] = {
     0x7e, 0x3c, 0x18, 0x00,
 };
 
-static void fade_sound(word period) {
-    static const byte border[] = { 1, 5, 7 };
-    for (byte i = 0; i < 3; i++) {
-	sound_fx(period >> i, border[i]);
-    }
-}
-
-static void fade_level(const byte *ptr, byte sound) {
-    word period = 0;
-    if (sound == 1) period = 500;
-    if (sound == 2) period = 300;
+static void fade_level(const byte *ptr) {
     while (*ptr != 0x00 && *ptr != 0xff) {
 	prepare_level(*ptr++);
-	fade_sound(period);
-	if (period) period -= 50;
     }
     prepare_level(*ptr);
-    if (sound == 1) fade_sound(period);
 }
 
 static const byte *level_ptr;
@@ -663,16 +663,25 @@ static void reset_player_sprite(void) {
     if (on_bridge()) frame = runner;
 }
 
+static void advance_level(void) {
+    if (on_bridge()) {
+	stop_player();
+    }
+    fade_period = 500;
+    fade_level(fade_out);
+    change_level();
+}
+
 static void game_loop(void) {
     byte drown = 0;
-    byte sound = 0;
 
+    fade_period = 0;
     reset_variables();
     setup_moon_shade();
   restart:
     scroll = 0;
     wave_count = 0;
-    fade_level(fade_in, sound);
+    fade_level(fade_in);
     erase_player(8, pos);
     wave_before_start();
     reset_player_sprite();
@@ -689,10 +698,7 @@ static void game_loop(void) {
 	/* calculate */
 	move_level();
 	if (level_done()) {
-	    if (on_bridge()) stop_player();
-	    fade_level(fade_out, 1);
-	    change_level();
-	    sound = 2;
+	    advance_level();
 	    goto restart;
 	}
 
