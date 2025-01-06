@@ -687,6 +687,7 @@ static void game_loop(void) {
 
   restart:
     scroll = 0;
+    *wave_addr = 0;
     fade_level(fade_in);
     erase_player(8, pos);
     wave_before_start();
