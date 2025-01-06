@@ -308,7 +308,9 @@ static const byte *frame;
 
 #define MAX_WAVES	128
 #define VELOCITY	-12
-#define BRIDGE		128
+#define STANDING	128
+#define BRIDGE_LEN	72
+#define BRIDGE_TOP	(STANDING + 8)
 
 static byte wave_count;
 static byte level_mask;
@@ -326,7 +328,7 @@ static const struct Level level_list[] = {
 static void reset_variables(void) {
     vel = 0;
     jump = 0;
-    pos = BRIDGE;
+    pos = STANDING;
 }
 
 static void init_variables(void) {
@@ -436,7 +438,7 @@ static void setup_moon_shade(void) {
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
     for (byte i = 0; i <= 2; i++) {
-	memset(map_y[pos + 0x8 + i], bridge[i], 9);
+	memset(map_y[BRIDGE_TOP + i], bridge[i], BRIDGE_LEN / 8);
     }
 }
 
@@ -445,7 +447,7 @@ static void animate_wave(void) {
 }
 
 static byte on_bridge(void) {
-    return pos == BRIDGE;
+    return pos == STANDING;
 }
 
 static void wave_before_start(void) {
@@ -583,15 +585,15 @@ static void draw_and_clear_bridge(void) {
     if (scroll >= level_length) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
-	    byte *addr = map_y[136 + i] + 31 - (offset & 0x1f);
+	    byte *addr = map_y[BRIDGE_TOP + i] + 31 - (offset & 0x1f);
 	    update_wave(addr, data & bridge[i]);
 	}
     }
 
-    if (scroll < 72 || scroll >= level_length + 72) {
-	byte from = scroll < 72 ? 8 : 40;
+    if (scroll < BRIDGE_LEN || scroll >= BRIDGE_LEN + level_length) {
+	byte from = scroll < BRIDGE_LEN ? 8 : 40;
 	byte data = scroll_data(6);
-	for (byte i = 136; i <= 138; i++) {
+	for (byte i = BRIDGE_TOP; i <= BRIDGE_TOP + 2; i++) {
 	    byte *addr = map_y[i] + from - (offset & 0x1f);
 	    update_wave(addr, data & *addr);
 	}
