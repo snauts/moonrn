@@ -455,10 +455,10 @@ static void vblank_delay(word ticks) {
     for (word i = 0; i < ticks; i++) { if (vblank) break; }
 }
 
-static void sound_fx(word period) {
+static void sound_fx(word period, byte border) {
     vblank = 0;
     while (!vblank) {
-	out_fe(0x10);
+	out_fe(border | 0x10);
 	vblank_delay(period);
 	out_fe(0x0);
 	vblank_delay(period);
@@ -474,7 +474,7 @@ static void drown_player(void) {
 	    frame += 8;
 	}
 	draw_player();
-	sound_fx(period);
+	sound_fx(period, 0);
 	clear_player();
 	period += 10;
     }
@@ -499,8 +499,9 @@ static const byte fade_out[] = {
 };
 
 static void fade_sound(word period) {
+    static const byte border[] = { 1, 5, 7 };
     for (byte i = 0; i < 3; i++) {
-	sound_fx(period >> i);
+	sound_fx(period >> i, border[i]);
     }
 }
 
