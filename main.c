@@ -851,12 +851,9 @@ static void change_level(void) {
     if (level < SIZE(level_list)) {
 	select_level(level);
     }
-    else if (on_bridge()) {
+    else {
 	animate_victory();
 	game_done();
-    }
-    else {
-	select_level(--level);
     }
 }
 
@@ -871,12 +868,22 @@ static void reset_player_sprite(void) {
 }
 
 static void advance_level(void) {
-    if (on_bridge()) {
-	stop_player();
-    }
+    stop_player();
     fade_period = 500;
     fade_level(fade_out);
     change_level();
+}
+
+static byte next_level(void) {
+    byte done = level_done();
+    byte next = done && on_bridge();
+    if (next) {
+	advance_level();
+    }
+    else if (done) {
+	scroll = 0;
+    }
+    return next;
 }
 
 static void game_loop(void) {
@@ -904,8 +911,7 @@ static void game_loop(void) {
 
 	/* calculate */
 	move_level();
-	if (level_done()) {
-	    advance_level();
+	if (next_level()) {
 	    goto restart;
 	}
 
