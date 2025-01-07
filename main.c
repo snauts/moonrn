@@ -291,8 +291,10 @@ static void uncompress(byte *dst, const byte *src, word size) {
 static void display_image(struct Image *img, byte x, byte y) {
     byte *ptr = (byte *) 0x5b00;
     uncompress(ptr, img->pixel, img->pixel_size);
-    for (byte i = 0; i < img->h << 3; i++) {
-	memcpy(map_y[y + i], ptr, img->w);
+
+    byte bottom = (y + img->h) << 3;
+    for (byte i = y << 3; i < bottom; i++) {
+	memcpy(map_y[i], ptr, img->w);
 	ptr += img->w;
     }
     uncompress(ptr, img->color, img->color_size);
@@ -695,7 +697,7 @@ static void end_game(const char *msg) {
 
 static void game_done(void) {
     end_game("CHALLENGE COMPLETED");
-    display_image(&outro, 0, 128);
+    display_image(&outro, 0, 16);
     while (!SPACE_DOWN()) { }
     reset();
 }
