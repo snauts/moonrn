@@ -738,8 +738,11 @@ static void change_level(void) {
     if (level < SIZE(level_list)) {
 	select_level(level);
     }
-    else {
+    else if (on_bridge()) {
 	game_done();
+    }
+    else {
+	select_level(--level);
     }
 }
 
