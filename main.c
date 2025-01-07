@@ -336,11 +336,7 @@ static void show_title(void) {
     }
     put_str("Press SPACE to participate", 52, 168);
 
-    const byte *ptr = credits;
-    for (byte i = 0; i < 8; i++) {
-	memcpy(map_y[184 + i], ptr, 8);
-	ptr += 8;
-    }
+    display_image(&credits, 0, 23);
 
     byte roll = 0;
     while (!SPACE_DOWN()) {

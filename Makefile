@@ -14,10 +14,10 @@ pcx:
 	@./pcx-dump -c title.pcx > data.h
 	@./pcx-dump -c horizon.pcx >> data.h
 	@./pcx-dump -c reward.pcx >> data.h
+	@./pcx-dump -c credits.pcx >> data.h
 	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h
 	@./pcx-dump -p drowner.pcx >> data.h
-	@./pcx-dump -p credits.pcx >> data.h
 	@./pcx-dump -l level1.pcx >> data.h
 	@./pcx-dump -l level2.pcx >> data.h
 	@./pcx-dump -l level3.pcx >> data.h
