@@ -697,7 +697,7 @@ static void end_game(const char *msg) {
 
 static void game_done(void) {
     end_game("CHALLENGE COMPLETED");
-    display_image(&outro, 0, 16);
+    display_image(&reward, 22, 16);
     while (!SPACE_DOWN()) { }
     reset();
 }
