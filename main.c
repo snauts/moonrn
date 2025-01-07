@@ -306,6 +306,23 @@ static void display_image(struct Image *img, byte x, byte y) {
     }
 }
 
+static void put_sprite(byte *addr, byte x, byte y, byte w, byte h) {
+    byte right = x & 7;
+    byte left = 8 - right;
+    byte top = y + h;
+    x = x >> 3;
+
+    for (; y < top; y++) {
+	byte *ptr = map_y[y] + x;
+	for (byte i = 0; i < w; i++) {
+	    byte data = * addr++;
+	    ptr[0] ^= (data >> right);
+	    ptr[1] ^= (data << left);
+	    ptr++;
+	}
+    }
+}
+
 static const char * const intro[] = {
     " Each year in the kingdom of Mondlauf,",
     "the second full moon casts its rays on",
