@@ -772,7 +772,8 @@ static void draw_boat(byte x) {
 
 static void splashing(byte dir) {
     if (ticker & 1) {
-	byte *addr = (byte *) boat + 24;
+	byte *addr = (byte *) boat;
+	addr = addr + sizeof(boat) - 3;
 	for (byte i = 0; i < 3; i++) {
 	    byte value = *addr;
 	    *addr++ = (dir ? rrc : rlc)(value);
