@@ -237,6 +237,8 @@ static void save_image(unsigned char *pixel, int pixel_size,
     printf("static const struct Image %s = {\n", name);
     save_image_entry(name, "pixel");
     save_image_entry(name, "color");
+    printf(" .w = %d,", header.w / 8);
+    printf(" .h = %d,\n", header.h / 8);
     printf("};\n");
 }
 

@@ -10,6 +10,7 @@ struct Image {
     word pixel_size;
     const byte *color;
     word color_size;
+    byte w, h;
 };
 
 struct Level {
@@ -48,14 +49,6 @@ static void memset(byte *ptr, byte data, word len) {
 
 static void memcpy(byte *dst, const byte *src, word len) {
     while (len-- > 0) { *dst++ = *src++; }
-}
-
-static void memswp(byte *dst, byte *src, word len) {
-    while (len-- > 0) {
-	byte tmp = *dst;
-	*dst++ = *src;
-	*src++ = tmp;
-    }
 }
 
 static void interrupt(void) __naked {
@@ -295,21 +288,20 @@ static void uncompress(byte *dst, const byte *src, word size) {
     }
 }
 
-static void swizzle_strip(byte *src, byte from) {
-    byte to = from + 64;
-    while (from < to) {
-	byte *dst = map_y[from++];
-	if (dst < src) memswp(dst, src, 32);
-	src += 32;
-    }
-}
-
-static void display_strip(struct Image *img, byte strip) {
-    byte *ptr = (byte *) 0x4000 + (strip << 11);
+static void display_image(struct Image *img, byte x, byte y) {
+    byte *ptr = (byte *) 0x5b00;
     uncompress(ptr, img->pixel, img->pixel_size);
-    swizzle_strip(ptr, strip << 6);
-    ptr =  (byte *) 0x5800 + (strip << 8);
+    for (byte i = 0; i < img->h << 3; i++) {
+	memcpy(map_y[y + i], ptr, img->w);
+	ptr += img->w;
+    }
     uncompress(ptr, img->color, img->color_size);
+    byte *addr = (byte *) 0x5800 + (y << 5) + x;
+    for (byte i = 0; i < img->h; i++) {
+	memcpy(addr, ptr, img->w);
+	ptr += img->w;
+	addr += 0x20;
+    }
 }
 
 static const char * const intro[] = {
@@ -336,7 +328,7 @@ static void lit_line(byte offset, byte color) {
 }
 
 static void show_title(void) {
-    display_strip(&title, 0);
+    display_image(&title, 0, 0);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
     }
@@ -703,7 +695,7 @@ static void end_game(const char *msg) {
 
 static void game_done(void) {
     end_game("CHALLENGE COMPLETED");
-    display_strip(&outro, 2);
+    display_image(&outro, 0, 128);
     while (!SPACE_DOWN()) { }
     reset();
 }
@@ -788,7 +780,7 @@ static void lose_cleanup(void) {
 }
 
 static void top_level(void) {
-    display_strip(&horizon, 0);
+    display_image(&horizon, 0, 0);
     select_level(level);
 
     while (lives-- >= 0) {
