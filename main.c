@@ -329,8 +329,21 @@ static void lit_line(byte offset, byte color) {
     }
 }
 
+static void shift_water_row(byte y) {
+    byte *addr = map_y[y] + 31;
+    for (int8 i = 0; i < 32; i++) {
+	byte value = *addr;
+	*addr-- = (value << 1) | (value & 0x80 ? 0x01 : 0x00);
+    }
+}
+
+static void animate_water() {
+    static const byte ripple[] = { 57, 61, 59, 61 };
+    shift_water_row(ripple[ticker & 3]);
+}
+
 static void show_title(void) {
-    display_image(&title, 1, 1);
+    display_image(&title, 0, 1);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
     }
@@ -341,6 +354,7 @@ static void show_title(void) {
     byte roll = 0;
     while (!SPACE_DOWN()) {
 	wait_vblank();
+	animate_water();
 	lit_line(roll - 32, 0x01);
 	lit_line(roll - 16, 0x41);
 	roll = (roll + 1) & 0x3f;
