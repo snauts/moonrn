@@ -337,7 +337,7 @@ static void shift_water_row(byte y) {
     }
 }
 
-static void animate_water() {
+static void animate_water(void) {
     static const byte ripple[] = { 57, 61, 59, 61 };
     shift_water_row(ripple[ticker & 3]);
 }
