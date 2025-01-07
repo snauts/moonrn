@@ -757,11 +757,12 @@ static void game_done(void) {
 
 static void outro_dimming(void) {
     byte *ptr = (byte *) 0x5920 - 3;
+    memset((byte *) 0x5a20, 7, 64);
+    memset((byte *) 0x5a60, 1, 32);
     for (byte y = 8; y < 24; y++) {
 	memset(ptr, 0, 3);
 	ptr += 0x20;
     }
-    memset((byte *) 0x5a60, 1, 32);
     wait_vblank();
 }
 
