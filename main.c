@@ -775,12 +775,54 @@ static void boat_arrives(void) {
     draw_boat(x);
 }
 
-static void animate_victory(void) {
-    byte x = 232;
+static void draw_jumper(byte x, byte y) {
+    put_sprite(runner + 48, x, y, 1, 8);
+}
+
+static void draw_in_boat(byte x) {
+    put_sprite(frame, x + 8, 141, 1, 6);
+}
+
+static void draw_with_boat(byte x) {
+    draw_in_boat(x);
+    draw_boat(x);
+}
+
+static void boat_leaves(void) {
+    byte x = 88;
+    while (x < 232) {
+	wait_vblank();
+	draw_with_boat(x);
+	animate_wave();
+	x++;
+	draw_with_boat(x);
+    }
+    draw_boat(x);
+}
+
+static void jump_in_boat(void) {
+    byte x = 64;
     byte y = 128;
+    vel = VELOCITY;
+    clear_player();
+    while (y < 141) {
+	draw_jumper(x, y);
+	wait_vblank();
+	draw_jumper(x, y);
+	y = y + (vel >> 2);
+	vel = vel + 1;
+	x++;
+    }
+    animate_wave();
+    draw_in_boat(88);
+    delay(25);
+}
+
+static void animate_victory(void) {
     outro_dimming();
     boat_arrives();
-    clear_player();
+    jump_in_boat();
+    boat_leaves();
 }
 
 static void change_level(void) {
