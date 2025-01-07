@@ -306,7 +306,7 @@ static void display_image(struct Image *img, byte x, byte y) {
     }
 }
 
-static void put_sprite(byte *addr, byte x, byte y, byte w, byte h) {
+static void put_sprite(const byte *addr, byte x, byte y, byte w, byte h) {
     byte right = x & 7;
     byte left = 8 - right;
     byte top = y + h;
