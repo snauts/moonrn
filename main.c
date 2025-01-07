@@ -370,13 +370,13 @@ static void animate_water(void) {
 }
 
 static void show_title(void) {
-    display_image(&title, 0, 1);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
     }
     put_str("Press SPACE to participate", 52, 168);
 
     display_image(&credits, 0, 23);
+    display_image(&title, 0, 1);
 
     byte roll = 0;
     while (!SPACE_DOWN()) {
