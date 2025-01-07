@@ -767,7 +767,7 @@ static void outro_dimming(void) {
 }
 
 static void draw_boat(byte x) {
-    put_sprite(boat, x, 144, 3, 9);
+    put_sprite(boat, x, 145, 3, 8);
 }
 
 static void splashing(byte dir) {
@@ -797,7 +797,7 @@ static void draw_jumper(byte x, byte y) {
 }
 
 static void draw_in_boat(byte x) {
-    put_sprite(frame, x + 8, 141, 1, 6);
+    put_sprite(frame, x + 8, 142, 1, 6);
 }
 
 static void draw_with_boat(byte x) {
@@ -823,7 +823,7 @@ static void jump_in_boat(void) {
     byte y = 128;
     vel = VELOCITY;
     clear_player();
-    while (y < 141) {
+    while (y < 142) {
 	draw_jumper(x, y);
 	wait_vblank();
 	draw_jumper(x, y);
