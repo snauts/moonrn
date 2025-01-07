@@ -772,7 +772,7 @@ static void draw_boat(byte x) {
 
 static void splashing(byte dir) {
     if (ticker & 1) {
-	byte *addr = (byte *) boat;
+	byte *addr = (void *) boat;
 	addr = addr + sizeof(boat) - 3;
 	for (byte i = 0; i < 3; i++) {
 	    byte value = *addr;
@@ -915,8 +915,24 @@ static void game_loop(void) {
     drown_player();
 }
 
+char *strcpy(char *dst, const char *src) {
+    while (*src) { *dst++ = *src++; }
+    *dst = 0;
+    return dst;
+}
+
+static void put_fatal_level_name(void) {
+    char buf[48];
+    char *ptr = buf;
+    ptr = strcpy(ptr, "Pitch black depths of ");
+    ptr = strcpy(ptr, level_list[level].msg);
+    ptr = strcpy(ptr, " cosumes you.");
+    put_str(buf, str_offset(buf, 128), 112);
+}
+
 static void game_over(void) {
     end_game("GAME OVER", 92);
+    put_fatal_level_name();
     while (!SPACE_DOWN()) { }
     reset();
 }
