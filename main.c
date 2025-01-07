@@ -742,12 +742,11 @@ static const char * const outro[] = {
 
 static void game_done(void) {
     end_game("CHALLENGE COMPLETED", 72);
-    display_image(&title, 0, 1);
-    display_image(&reward, 22, 16);
-
     for (byte i = 0; i < SIZE(outro); i++) {
 	put_str(outro[i], 4, 88 + (i << 3));
     }
+    display_image(&reward, 22, 16);
+    display_image(&title, 0, 1);
 
     while (!SPACE_DOWN()) {
 	wait_vblank();
