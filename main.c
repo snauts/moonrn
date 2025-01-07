@@ -346,8 +346,13 @@ static void lit_line(byte offset, byte color) {
     }
 }
 
-static byte rotate(byte a) {
+static byte rlc(byte a) {
     __asm__("rlc a");
+    return a;
+}
+
+static byte rrc(byte a) {
+    __asm__("rrc a");
     return a;
 }
 
@@ -355,7 +360,7 @@ static void shift_water_row(byte y) {
     byte *addr = map_y[y];
     for (int8 i = 0; i < 32; i++) {
 	byte value = *addr;
-	*addr++ = rotate(value);
+	*addr++ = rlc(value);
     }
 }
 
@@ -761,7 +766,17 @@ static void outro_dimming(void) {
 }
 
 static void draw_boat(byte x) {
-    put_sprite(boat, x, 144, 3, 8);
+    put_sprite(boat, x, 144, 3, 9);
+}
+
+static void splashing(byte dir) {
+    if (ticker & 1) {
+	byte *addr = (byte *) boat + 24;
+	for (byte i = 0; i < 3; i++) {
+	    byte value = *addr;
+	    *addr++ = (dir ? rrc : rlc)(value);
+	}
+    }
 }
 
 static void boat_arrives(void) {
@@ -770,6 +785,7 @@ static void boat_arrives(void) {
 	draw_boat(x);
 	wait_vblank();
 	draw_boat(x);
+	splashing(1);
 	x--;
     }
     draw_boat(x);
@@ -794,7 +810,8 @@ static void boat_leaves(void) {
 	wait_vblank();
 	draw_with_boat(x);
 	animate_wave();
-	x++;
+	splashing(0);
+	x = x + 1;
 	draw_with_boat(x);
     }
     draw_boat(x);
