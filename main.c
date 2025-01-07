@@ -750,12 +750,46 @@ static void game_done(void) {
     reset();
 }
 
+static void outro_dimming(void) {
+    byte *ptr = (byte *) 0x5920 - 3;
+    for (byte y = 8; y < 24; y++) {
+	memset(ptr, 0, 3);
+	ptr += 0x20;
+    }
+    memset((byte *) 0x5a60, 1, 32);
+    wait_vblank();
+}
+
+static void draw_boat(byte x) {
+    put_sprite(boat, x, 144, 3, 8);
+}
+
+static void boat_arrives(void) {
+    byte x = 232;
+    while (x > 88) {
+	draw_boat(x);
+	wait_vblank();
+	draw_boat(x);
+	x--;
+    }
+    draw_boat(x);
+}
+
+static void animate_victory(void) {
+    byte x = 232;
+    byte y = 128;
+    outro_dimming();
+    boat_arrives();
+    clear_player();
+}
+
 static void change_level(void) {
     level++;
     if (level < SIZE(level_list)) {
 	select_level(level);
     }
     else if (on_bridge()) {
+	animate_victory();
 	game_done();
     }
     else {
