@@ -415,6 +415,7 @@ static const struct Level level_list[] = {
     { level2, "Titikaka", 256, 0x1f },
     { level3, "Baikal",   256, 0x1f },
     { level4, "Suez",     256, 0x1f },
+    { level5, "Komo",     256, 0x1f },
 };
 
 static void reset_variables(void) {
