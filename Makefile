@@ -22,6 +22,7 @@ pcx:
 	@./pcx-dump -l level1.pcx >> data.h
 	@./pcx-dump -l level2.pcx >> data.h
 	@./pcx-dump -l level3.pcx >> data.h
+	@./pcx-dump -l level4.pcx >> data.h
 
 prg: pcx
 	@sdcc $(ARCH) $(CFLAGS) $(TYPE) main.c -o moonrn.ihx
