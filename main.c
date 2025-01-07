@@ -699,16 +699,32 @@ static void select_level(byte i) {
     level_message(ptr->msg);
 }
 
-static void end_game(const char *msg) {
+static void end_game(const char *msg, byte y) {
     clear_screen();
-    put_str(msg, str_offset(msg, 128), 92);
+    put_str(msg, str_offset(msg, 128), y);
     memset((void *) 0x5900, 1, 0x100);
 }
 
+static const char * const outro[] = {
+    " As you skip over the last patch of moonlight,",
+    "the crowd cheers especially loud. After all,",
+    "no one has completed this challenge in the past",
+    "three years. A big celebration is in order.",
+};
+
 static void game_done(void) {
-    end_game("CHALLENGE COMPLETED");
+    end_game("CHALLENGE COMPLETED", 64);
+    display_image(&title, 0, 1);
     display_image(&reward, 22, 16);
-    while (!SPACE_DOWN()) { }
+
+    for (byte i = 0; i < SIZE(outro); i++) {
+	put_str(outro[i], 4, 85 + (i << 3));
+    }
+
+    while (!SPACE_DOWN()) {
+	wait_vblank();
+	animate_water();
+    }
     reset();
 }
 
@@ -780,7 +796,7 @@ static void game_loop(void) {
 }
 
 static void game_over(void) {
-    end_game("GAME OVER");
+    end_game("GAME OVER", 92);
     while (!SPACE_DOWN()) { }
     reset();
 }
