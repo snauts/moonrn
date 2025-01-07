@@ -294,7 +294,7 @@ static void display_image(struct Image *img, byte x, byte y) {
 
     byte bottom = (y + img->h) << 3;
     for (byte i = y << 3; i < bottom; i++) {
-	memcpy(map_y[i], ptr, img->w);
+	memcpy(map_y[i] + x, ptr, img->w);
 	ptr += img->w;
     }
     uncompress(ptr, img->color, img->color_size);
@@ -330,7 +330,7 @@ static void lit_line(byte offset, byte color) {
 }
 
 static void show_title(void) {
-    display_image(&title, 0, 0);
+    display_image(&title, 1, 1);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
     }
