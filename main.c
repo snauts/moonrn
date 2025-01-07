@@ -329,11 +329,16 @@ static void lit_line(byte offset, byte color) {
     }
 }
 
+static byte rotate(byte a) {
+    __asm__("rlc a");
+    return a;
+}
+
 static void shift_water_row(byte y) {
-    byte *addr = map_y[y] + 31;
+    byte *addr = map_y[y];
     for (int8 i = 0; i < 32; i++) {
 	byte value = *addr;
-	*addr-- = (value << 1) | (value & 0x80 ? 0x01 : 0x00);
+	*addr++ = rotate(value);
     }
 }
 
