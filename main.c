@@ -415,6 +415,7 @@ static const struct Level level_list[] = {
     { levelP, "Peipus",    512, 0x3f },
     { levelM, "Mariana",   512, 0x3f },
     { levelN, "Nyos",      512, 0x3f },
+    { levelA, "Atlantic",  512, 0x1f },
     { levelS, "Suez",      512, 0x3f },
     { level1, "Liezeris",  512, 0x1f },
     { level2, "Titikaka",  512, 0x1f },
