@@ -411,6 +411,7 @@ static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
 static const struct Level level_list[] = {
+    { level0, "Victoria", 256, 0x1f },
     { level1, "Liezeris", 256, 0x1f },
     { level2, "Titikaka", 256, 0x1f },
     { level3, "Baikal",   256, 0x1f },
@@ -427,7 +428,7 @@ static void reset_variables(void) {
 
 static void init_variables(void) {
     lives = 6;
-    level = 0;
+    level = 1;
     frame = runner;
     reset_variables();
 }
@@ -846,12 +847,24 @@ static void animate_victory(void) {
     boat_leaves();
 }
 
+static void fade_empty_level(void) {
+    select_level(0);
+    fade_level(fade_in);
+    for (byte i = 0; i < 2; i++) {
+	delay(20);
+	fade_period = 500;
+	fade_level(fade_out);
+	fade_level(fade_in);
+    }
+}
+
 static void change_level(void) {
     level++;
     if (level < SIZE(level_list)) {
 	select_level(level);
     }
     else {
+	fade_empty_level();
 	animate_victory();
 	game_done();
     }
