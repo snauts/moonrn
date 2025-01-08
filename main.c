@@ -482,7 +482,9 @@ static void move_player(void) {
     }
     else {
 	byte new;
-	vel = vel + 1;
+	if (vel < -VELOCITY) {
+	    vel = vel + 1;
+	}
 	double_jump(space);
 	new = pos + (vel >> 2);
 	if (vel > 0) {
