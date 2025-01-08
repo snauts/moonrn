@@ -701,7 +701,7 @@ static void draw_and_clear_bridge(void) {
 }
 
 static void move_level(void) {
-    byte offset = scroll;
+    word offset = scroll;
     current_data = wave_data;
     current_addr = wave_addr;
     level_ptr = current_level + WAVE_TYPES;
