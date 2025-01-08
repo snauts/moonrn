@@ -549,6 +549,12 @@ static void setup_moon_shade(void) {
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
+    memset((void *) 0x5a80, 5, 0x18);
+    memset((void *) 0x5aa0, 5, 0x18);
+    memset((void *) 0x5ac0, 1, 0x40);
+}
+
+static void draw_bridge(void) {
     for (byte i = 0; i <= 2; i++) {
 	memset(map_y[BRIDGE_TOP + i], bridge[i], BRIDGE_LEN / 8);
     }
@@ -921,7 +927,7 @@ static void game_loop(void) {
     byte drown = 0;
     fade_period = 0;
     reset_variables();
-    setup_moon_shade();
+    draw_bridge();
 
   restart:
     scroll = 0;
@@ -984,6 +990,7 @@ static void lose_cleanup(void) {
 
 static void top_level(void) {
     display_image(&horizon, 0, 0);
+    setup_moon_shade();
     select_level(level);
 
     while (lives-- >= 0) {
