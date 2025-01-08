@@ -28,6 +28,7 @@ struct Level {
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 static volatile byte vblank;
+static volatile byte spdown;
 static volatile byte ticker;
 static byte *map_y[192];
 
@@ -35,7 +36,7 @@ void reset(void);
 
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
-#define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
+#define SPACE_DOWN()	!spdown
 #define IRQ_BASE	0xfe00
 #endif
 
@@ -77,8 +78,14 @@ static void interrupt(void) __naked {
 
     __asm__("ld a, #1");
     __asm__("ld (_vblank), a");
+
     __asm__("ld hl, #_ticker");
     __asm__("inc (hl)");
+
+    __asm__("in a, (#0xfe)");
+    __asm__("and #1");
+    __asm__("ld (_spdown), a");
+
     __asm__("pop hl");
     __asm__("pop af");
     __asm__("ei");
@@ -436,6 +443,7 @@ static void reset_variables(void) {
 static void init_variables(void) {
     lives = 6;
     level = 1;
+    spdown = 0;
     frame = runner;
     reset_variables();
 }
