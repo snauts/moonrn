@@ -411,14 +411,14 @@ static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
 static const struct Level level_list[] = {
-    { level0, "Victoria",  256, 0x1f },
-    { level1, "Liezeris",  256, 0x1f },
-    { level2, "Titikaka",  256, 0x1f },
-    { level3, "Baikal",    256, 0x1f },
-    { level4, "Suez",      256, 0x1f },
-    { level5, "Komo",      256, 0x1f },
-    { level6, "Balaton",   256, 0x1f },
-    { level7, "Loch Ness", 256, 0x1f },
+    { level0, "Victoria",  512, 0x1f },
+    { level1, "Liezeris",  512, 0x1f },
+    { level2, "Titikaka",  512, 0x1f },
+    { level3, "Baikal",    512, 0x1f },
+    { level4, "Suez",      512, 0x1f },
+    { level5, "Komo",      512, 0x1f },
+    { level6, "Balaton",   512, 0x1f },
+    { level7, "Loch Ness", 512, 0x1f },
 };
 
 static void reset_variables(void) {
@@ -680,8 +680,9 @@ static byte scroll_data(byte i) {
 
 static void draw_and_clear_bridge(void) {
     byte offset = scroll >> 3;
+    word start = level_length - 256;
 
-    if (scroll >= level_length) {
+    if (scroll >= start) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
 	    byte *addr = map_y[BRIDGE_TOP + i] + 31 - (offset & 0x1f);
@@ -689,7 +690,7 @@ static void draw_and_clear_bridge(void) {
 	}
     }
 
-    if (scroll < BRIDGE_LEN || scroll >= BRIDGE_LEN + level_length) {
+    if (scroll < BRIDGE_LEN || scroll >= BRIDGE_LEN + start) {
 	byte data = scroll_data(6);
 	byte from = scroll < BRIDGE_LEN ? 8 : 40;
 	for (byte i = BRIDGE_TOP; i <= BRIDGE_TOP + 2; i++) {
@@ -714,7 +715,7 @@ static void move_level(void) {
 }
 
 static byte level_done(void) {
-    return scroll > level_length + 256;
+    return scroll > level_length;
 }
 
 static void level_message(const char *msg) {
