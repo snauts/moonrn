@@ -23,6 +23,7 @@ pcx:
 	@./pcx-dump -l levelM.pcx >> data.h
 	@./pcx-dump -l levelP.pcx >> data.h
 	@./pcx-dump -l levelS.pcx >> data.h
+	@./pcx-dump -l levelN.pcx >> data.h
 	@./pcx-dump -l level1.pcx >> data.h
 	@./pcx-dump -l level2.pcx >> data.h
 	@./pcx-dump -l level3.pcx >> data.h
