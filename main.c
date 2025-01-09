@@ -22,6 +22,7 @@ struct Level {
 
 #include "data.h"
 
+#define NULL		((void *) 0)
 #define ADDR(obj)	((word) (obj))
 #define BYTE(addr)	(* (volatile byte *) (addr))
 #define WORD(addr)	(* (volatile word *) (addr))
@@ -795,7 +796,25 @@ static const char * const outro[] = {
     "the crowd cheers especially loud. After all,",
     "no one has completed this challenge in the past",
     "three years. A big celebration is in order.",
+    NULL,
 };
+
+static const char * const p_done[] = {
+    " As you skip over the last patch of moonlight,",
+    "you feel a surge of confidence to participate",
+    "in next year's challenge.",
+    NULL,
+};
+
+static void show_outro_text(void) {
+    byte y = 88;
+    const char **text;
+    text = practice_run() ? p_done : outro;
+    while (*text) {
+	put_str(*text++, 4, y);
+	y = y + 8;
+    }
+}
 
 static const char *done_message(void) {
     return practice_run() ? "PRACTICE" : "CHALLENGE";
@@ -809,9 +828,7 @@ static void game_done(void) {
 
     end_game(buf, 72);
 
-    for (byte i = 0; i < SIZE(outro); i++) {
-	put_str(outro[i], 4, 88 + (i << 3));
-    }
+    show_outro_text();
     if (!practice_run()) {
 	display_image(&reward, 22, 16);
     }
