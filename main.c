@@ -376,6 +376,10 @@ static void animate_water(void) {
     shift_water_row(ripple[ticker & 3]);
 }
 
+static void center_msg(const char *msg, byte y) {
+    put_str(msg, str_offset(msg, 128), y);
+}
+
 static void show_title(void) {
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
@@ -756,7 +760,7 @@ static void select_level(byte i) {
 
 static void end_game(const char *msg, byte y) {
     clear_screen();
-    put_str(msg, str_offset(msg, 128), y);
+    center_msg(msg, y);
     memset((void *) 0x5900, 1, 0x100);
 }
 
@@ -972,8 +976,8 @@ static void put_fatal_level_name(void) {
     char *ptr = buf;
     ptr = strcpy(ptr, "Pitch black depths of ");
     ptr = strcpy(ptr, level_list[level].msg);
-    ptr = strcpy(ptr, " cosumes you.");
-    put_str(buf, str_offset(buf, 128), 112);
+    ptr = strcpy(ptr, " consumes you.");
+    center_msg(buf, 112);
 }
 
 static void game_over(void) {
