@@ -934,11 +934,13 @@ static void animate_victory(void) {
 static void fade_empty_level(void) {
     select_level(0);
     fade_level(fade_in);
-    for (byte i = 0; i < 2; i++) {
-	delay(20);
-	fade_period = 500;
-	fade_level(fade_out);
-	fade_level(fade_in);
+    if (!practice_run()) {
+	for (byte i = 0; i < 2; i++) {
+	    delay(20);
+	    fade_period = 500;
+	    fade_level(fade_out);
+	    fade_level(fade_in);
+	}
     }
 }
 
