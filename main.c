@@ -938,6 +938,7 @@ static void game_loop(void) {
     reset_player_sprite();
     draw_player();
     wait_vblank();
+    spdown = 1;
 
     while (!drown && pos < 184) {
 	/* draw */
