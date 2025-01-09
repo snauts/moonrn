@@ -1049,7 +1049,7 @@ static void game_loop(void) {
     reset_player_sprite();
     draw_player();
     wait_vblank();
-    space_up = 1;
+    space_up = 0;
 
     while (!drown && pos < 184) {
 	/* draw */
