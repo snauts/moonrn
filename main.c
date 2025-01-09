@@ -380,6 +380,14 @@ static void center_msg(const char *msg, byte y) {
     put_str(msg, str_offset(msg, 128), y);
 }
 
+
+static byte *practice;
+static const byte p_value = 1;
+
+static byte practice_run(void) {
+    return *practice;
+}
+
 static void show_title(void) {
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
@@ -450,6 +458,7 @@ static void init_variables(void) {
     spdown = 0;
     frame = runner;
     reset_variables();
+    practice = (void *) &p_value;
 }
 
 static void clear_player(void) {
@@ -990,7 +999,9 @@ static void game_over(void) {
 static void lose_cleanup(void) {
     map_y[63][8] = map_y[63][9];
     memset((void *) 0x4800, 0, 0x1000);
-    if (lives >= 0) erase_player(21 + lives, 44);
+    if (lives >= 0 && !practice_run()) {
+	erase_player(21 + lives, 44);
+    }
 }
 
 static void top_level(void) {
@@ -998,8 +1009,11 @@ static void top_level(void) {
     setup_moon_shade();
     select_level(level);
 
-    while (lives-- >= 0) {
+    while (lives >= 0) {
 	game_loop();
+	if (!practice_run()) {
+	    lives--;
+	}
 	lose_cleanup();
     }
 
