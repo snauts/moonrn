@@ -29,7 +29,7 @@ struct Level {
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 static volatile byte vblank;
-static volatile byte spdown;
+static volatile byte space_up;
 static volatile byte ticker;
 static byte *map_y[192];
 
@@ -37,7 +37,7 @@ void reset(void);
 
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
-#define SPACE_DOWN()	!spdown
+#define SPACE_DOWN()	!space_up
 #define IRQ_BASE	0xfe00
 #endif
 
@@ -85,7 +85,7 @@ static void interrupt(void) __naked {
 
     __asm__("in a, (#0xfe)");
     __asm__("and #1");
-    __asm__("ld (_spdown), a");
+    __asm__("ld (_space_up), a");
 
     __asm__("pop hl");
     __asm__("pop af");
@@ -473,7 +473,7 @@ static void reset_variables(void) {
 static void init_variables(void) {
     lives = 6;
     level = 1;
-    spdown = 0;
+    space_up = 0;
     frame = runner;
     reset_variables();
     practice = (void *) &p_value;
@@ -999,7 +999,7 @@ static void game_loop(void) {
     reset_player_sprite();
     draw_player();
     wait_vblank();
-    spdown = 1;
+    space_up = 1;
 
     while (!drown && pos < 184) {
 	/* draw */
