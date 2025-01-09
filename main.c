@@ -376,10 +376,15 @@ static void animate_water(void) {
     shift_water_row(ripple[ticker & 3]);
 }
 
+static char *strcpy(char *dst, const char *src) {
+    while (*src) { *dst++ = *src++; }
+    *dst = 0;
+    return dst;
+}
+
 static void center_msg(const char *msg, byte y) {
     put_str(msg, str_offset(msg, 128), y);
 }
-
 
 static byte *practice;
 static const byte p_value = 1;
@@ -388,11 +393,23 @@ static byte practice_run(void) {
     return *practice;
 }
 
+static const char* start_string(void) {
+    return practice_run() ? "practice" : "participate";
+}
+
+static void print_start_message(void) {
+    char buf[48];
+    char *ptr = buf;
+    ptr = strcpy(ptr, "Press SPACE to ");
+    ptr = strcpy(ptr, start_string());
+    center_msg(buf, 168);
+}
+
 static void show_title(void) {
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
     }
-    put_str("Press SPACE to participate", 52, 168);
+    print_start_message();
 
     display_image(&credits, 0, 23);
     display_image(&title, 0, 1);
@@ -972,12 +989,6 @@ static void game_loop(void) {
 
     erase_player(8, pos);
     drown_player();
-}
-
-char *strcpy(char *dst, const char *src) {
-    while (*src) { *dst++ = *src++; }
-    *dst = 0;
-    return dst;
 }
 
 static void put_fatal_level_name(void) {
