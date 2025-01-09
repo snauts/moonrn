@@ -797,18 +797,31 @@ static const char * const outro[] = {
     "three years. A big celebration is in order.",
 };
 
+static const char *done_message(void) {
+    return practice_run() ? "PRACTICE" : "CHALLENGE";
+}
+
 static void game_done(void) {
-    end_game("CHALLENGE COMPLETED", 72);
+    char buf[48];
+    char *ptr = buf;
+    ptr = strcpy(ptr, done_message());
+    ptr = strcpy(ptr, " COMPLETED");
+
+    end_game(buf, 72);
+
     for (byte i = 0; i < SIZE(outro); i++) {
 	put_str(outro[i], 4, 88 + (i << 3));
     }
-    display_image(&reward, 22, 16);
+    if (!practice_run()) {
+	display_image(&reward, 22, 16);
+    }
     display_image(&title, 0, 1);
 
     while (!SPACE_DOWN()) {
 	wait_vblank();
 	animate_water();
     }
+    *practice = 0;
     reset();
 }
 
