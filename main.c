@@ -924,11 +924,57 @@ static void jump_in_boat(void) {
     delay(25);
 }
 
-static void animate_victory(void) {
+static void animate_finish(void) {
     outro_dimming();
     boat_arrives();
     jump_in_boat();
     boat_leaves();
+}
+
+static byte flip_bits(byte source) {
+    byte result = 0;
+    for (byte i = 0; i < 8; i++) {
+	result = result << 1;
+	result |= source & 1;
+	source = source >> 1;
+    }
+    return result;
+}
+
+static void flip_runner(byte *buf) {
+    for (byte i = 0; i < SIZE(runner); i++) {
+	buf[i] = flip_bits(runner[i]);
+    }
+}
+
+static void draw_away_runner(byte *buf, byte x) {
+    put_sprite(buf, x, 128, 1, 8);
+}
+
+static void player_run_away(void) {
+    byte x = 64;
+    byte flip[64];
+    flip_runner(flip);
+
+    wait_vblank();
+    clear_player();
+    while (x > 0) {
+	byte *ptr = flip;
+	ptr += (ticker & 0xe) << 2;
+	draw_away_runner(ptr, x);
+	wait_vblank();
+	draw_away_runner(ptr, x);
+	x = x - 1;
+    }
+}
+
+static void animate_victory(void) {
+    if (practice_run()) {
+	player_run_away();
+    }
+    else {
+	animate_finish();
+    }
 }
 
 static void fade_empty_level(void) {
