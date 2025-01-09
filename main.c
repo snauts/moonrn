@@ -808,7 +808,7 @@ static const char * const p_done[] = {
 
 static void show_outro_text(void) {
     byte y = 88;
-    const char **text;
+    const char * const *text;
     text = practice_run() ? p_done : outro;
     while (*text) {
 	put_str(*text++, 4, y);
