@@ -948,6 +948,7 @@ static void change_level(void) {
 	select_level(level);
     }
     else {
+	stop_music();
 	fade_empty_level();
 	animate_victory();
 	game_done();
@@ -1045,9 +1046,14 @@ static void lose_cleanup(void) {
     }
 }
 
+static void music_tune(void) {
+    __asm__(".incbin \"music.pt3\"");
+}
+
 static void top_level(void) {
     display_image(&horizon, 0, 0);
     setup_moon_shade();
+    select_music(&music_tune);
     select_level(level);
 
     while (lives >= 0) {
@@ -1058,6 +1064,7 @@ static void top_level(void) {
 	lose_cleanup();
     }
 
+    stop_music();
     game_over();
 }
 
