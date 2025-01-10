@@ -1123,8 +1123,18 @@ static void lose_cleanup(void) {
     }
 }
 
+static void no_lives(void) {
+    lives = 0;
+    for (byte x = 0; x < 6; x++) {
+	erase_player(26 - x, 44);
+	sound_fx((x + 8) << 4, 0);
+	delay(3);
+    }
+}
+
 static void top_level(void) {
     display_image(&horizon, 0, 0);
+    if (*run_num >= 2) no_lives();
     setup_moon_shade();
     select_music(&music_tune);
     select_level(level);
