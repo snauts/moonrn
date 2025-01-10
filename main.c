@@ -149,6 +149,15 @@ static void select_music(void *ptr) {
     current = ptr;
     start_music();
 }
+
+static void music_tune(void) {
+    __asm__(".incbin \"music.pt3\"");
+}
+#else
+
+#define select_music(x)
+#define stop_music()
+
 #endif
 
 static void setup_system(void) {
@@ -1094,10 +1103,6 @@ static void lose_cleanup(void) {
     if (lives >= 0 && !practice_run()) {
 	erase_player(21 + lives, 44);
     }
-}
-
-static void music_tune(void) {
-    __asm__(".incbin \"music.pt3\"");
 }
 
 static void top_level(void) {
