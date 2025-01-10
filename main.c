@@ -396,15 +396,26 @@ static void center_msg(const char *msg, byte y) {
     put_str(msg, str_offset(msg, 128), y);
 }
 
-static byte *practice;
-static const byte p_value = 1;
+static byte *run_num;
+static const byte run_value = 0;
 
 static byte practice_run(void) {
-    return *practice;
+    return *run_num == 0;
+}
+
+static void advance_run(void) {
+    if (*run_num < 2) *run_num = *run_num + 1;
 }
 
 static const char* start_string(void) {
-    return practice_run() ? "practice" : "participate";
+    switch (*run_num) {
+    case 0:
+	return "practice";
+    case 1:
+	return "participate";
+    default:
+	return "accept challenge";
+    }
 }
 
 static void print_start_message(void) {
@@ -487,7 +498,7 @@ static void init_variables(void) {
     space_up = 0;
     frame = runner;
     reset_variables();
-    practice = (void *) &p_value;
+    run_num = (void *) &run_value;
 }
 
 static void clear_player(void) {
@@ -828,14 +839,21 @@ static void show_outro_text(void) {
 }
 
 static const char *done_message(void) {
-    return practice_run() ? "PRACTICE" : "CHALLENGE";
+    switch (*run_num) {
+    case 0:
+	return "PRACTICE";
+    case 1:
+	return "GAME";
+    default:
+	return "CHALLENGE";
+    }
 }
 
 static void game_done(void) {
     char buf[48];
     char *ptr = buf;
     ptr = strcpy(ptr, done_message());
-    ptr = strcpy(ptr, " COMPLETED");
+    ptr = strcpy(ptr, " COMPLETE");
 
     end_game(buf, 72);
 
@@ -849,7 +867,7 @@ static void game_done(void) {
 	wait_vblank();
 	animate_water();
     }
-    *practice = 0;
+    advance_run();
     reset();
 }
 
