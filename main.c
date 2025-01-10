@@ -484,6 +484,7 @@ static const struct Level level_list[] = {
     { levelL, "Nile",      512, 0x3f },
     { level2, "Titikaka",  512, 0x1f },
     { level3, "Baikal",    512, 0x1f },
+    { levelO, "Amazon",    512, 0x3f },
     { level4, "Panama",    512, 0x1f },
     { level5, "Komo",      512, 0x1f },
     { level6, "Balaton",   512, 0x1f },
