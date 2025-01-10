@@ -652,14 +652,14 @@ static void drown_player(void) {
     word period = 20;
     frame = drowner;
     while (frame < drowner + sizeof(drowner)) {
-	if ((ticker & 3) == 0) {
-	    period -= 30;
-	    frame += 8;
-	}
 	draw_player();
 	sound_fx(period, 0);
 	clear_player();
 	period += 10;
+	if ((ticker & 3) == 0) {
+	    period -= 30;
+	    frame += 8;
+	}
     }
 }
 
