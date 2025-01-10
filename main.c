@@ -403,6 +403,10 @@ static byte practice_run(void) {
     return *run_num == 0;
 }
 
+static byte hard_run(void) {
+    return *run_num >= 2;
+}
+
 static void advance_run(void) {
     if (*run_num < 2) *run_num = *run_num + 1;
 }
@@ -1134,7 +1138,7 @@ static void no_lives(void) {
 
 static void top_level(void) {
     display_image(&horizon, 0, 0);
-    if (*run_num >= 2) no_lives();
+    if (hard_run()) no_lives();
     setup_moon_shade();
     select_music(&music_tune);
     select_level(level);
