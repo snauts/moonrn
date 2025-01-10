@@ -14,6 +14,7 @@ pcx:
 	@./pcx-dump -c title.pcx > data.h
 	@./pcx-dump -c horizon.pcx >> data.h
 	@./pcx-dump -c reward.pcx >> data.h
+	@./pcx-dump -c deed.pcx >> data.h
 	@./pcx-dump -c credits.pcx >> data.h
 	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h

@@ -814,7 +814,7 @@ static void select_level(byte i) {
 static void end_game(const char *msg, byte y) {
     clear_screen();
     center_msg(msg, y);
-    memset((void *) 0x5900, 1, 0x100);
+    memset((void *) 0x5900, 1, 0x200);
 }
 
 static const char * const outro[] = {
@@ -864,6 +864,10 @@ static void game_done(void) {
     show_outro_text();
     if (!practice_run()) {
 	display_image(&reward, 22, 16);
+    }
+    if (hard_run()) {
+	display_image(&deed, 2, 16);
+	center_msg("THE END", 152) ;
     }
     display_image(&title, 0, 1);
 
