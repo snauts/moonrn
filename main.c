@@ -437,6 +437,7 @@ static void show_title(void) {
     print_start_message();
 
     display_image(&credits, 0, 23);
+    display_image(&hazard, 24, 23);
     display_image(&title, 0, 1);
 
     byte roll = 0;
