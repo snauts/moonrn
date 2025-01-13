@@ -606,7 +606,6 @@ static void shade_cone(byte *ptr, byte color, byte width, byte step) {
 static const byte bridge[] = { 0xff, 0x44, 0x22 };
 
 static void setup_moon_shade(void) {
-    memset((void *) 0x5893, 1, 10);
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
