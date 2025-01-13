@@ -31,6 +31,7 @@ pcx:
 	@./pcx-dump -l levelG.pcx >> data.h
 	@./pcx-dump -l levelL.pcx >> data.h
 	@./pcx-dump -l levelO.pcx >> data.h
+	@./pcx-dump -l levelB.pcx >> data.h
 	@./pcx-dump -l level1.pcx >> data.h
 	@./pcx-dump -l level2.pcx >> data.h
 	@./pcx-dump -l level3.pcx >> data.h
