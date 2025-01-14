@@ -1092,8 +1092,8 @@ static void outro_dimming(void) {
     wait_vblank();
 }
 
-static void draw_boat(byte x) {
-    put_sprite(boat, x, 145, 3, 8);
+static void draw_boat(byte *buf, byte x) {
+    put_sprite(buf, x, 145, 3, 8);
 }
 
 static void splashing(byte dir) {
@@ -1107,16 +1107,16 @@ static void splashing(byte dir) {
     }
 }
 
-static void boat_arrives(void) {
+static void boat_arrives(byte *buf) {
     byte x = 232;
     while (x > 88) {
-	draw_boat(x);
+	draw_boat(buf, x);
 	wait_vblank();
-	draw_boat(x);
+	draw_boat(buf, x);
 	splashing(1);
 	x--;
     }
-    draw_boat(x);
+    draw_boat(buf, x);
 }
 
 static void draw_jumper(byte *ptr, byte x, byte y) {
@@ -1127,33 +1127,38 @@ static void draw_in_boat(byte x) {
     put_sprite(frame, x + 8, 142, 1, 6);
 }
 
-static void draw_with_boat(byte x) {
+static void draw_with_boat(byte *buf, byte x) {
     draw_in_boat(x);
-    draw_boat(x);
+    draw_boat(buf, x);
 }
 
-static void boat_leaves(void) {
+static void boat_leaves(byte *buf) {
     byte x = 88;
     while (x < 232) {
 	wait_vblank();
-	draw_with_boat(x);
+	draw_with_boat(buf, x);
 	animate_wave();
 	splashing(0);
 	x = x + 1;
-	draw_with_boat(x);
+	draw_with_boat(buf, x);
     }
-    draw_boat(x);
+    draw_boat(buf, x);
+}
+
+static byte *free;
+static byte *generate_one(const byte *src, byte w, byte h) {
+    byte *ptr = free;
+    free = generate_sprite(src, ptr, w, h);
+    return ptr;
 }
 
 static byte *generate_jumper(void) {
-    generate_sprite(runner + (48 << BPP_SHIFT), tmp, 1, 8);
-    return tmp;
+    return generate_one(runner + (48 << BPP_SHIFT), 1, 8);
 }
 
-static void jump_in_boat(void) {
+static void jump_in_boat(byte *buf) {
     byte x = 64;
     byte y = 128;
-    byte *buf = generate_jumper();
     vel = VELOCITY;
     clear_player();
     while (y < 142) {
@@ -1170,10 +1175,13 @@ static void jump_in_boat(void) {
 }
 
 static void animate_finish(void) {
+    free = tmp;
+    byte *laiva = generate_one(boat, 3, 8);
+    byte *jumper = generate_jumper();
     outro_dimming();
-    boat_arrives();
-    jump_in_boat();
-    boat_leaves();
+    boat_arrives(laiva);
+    jump_in_boat(jumper);
+    boat_leaves(laiva);
 }
 
 static byte flip_bits(byte source) {
