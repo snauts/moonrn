@@ -1092,7 +1092,7 @@ static void boat_arrives(void) {
 }
 
 static void draw_jumper(byte x, byte y) {
-    put_sprite(runner + 48, x, y, 1, 8);
+    put_sprite(runner + (48 << BPP_SHIFT), x, y, 1, 8);
 }
 
 static void draw_in_boat(byte x) {
