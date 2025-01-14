@@ -10,8 +10,10 @@ typedef unsigned short word;
 struct Image {
     const byte *pixel;
     word pixel_size;
+#if defined(ZXS)
     const byte *color;
     word color_size;
+#endif
     byte w, h;
 };
 
@@ -42,11 +44,15 @@ void reset(void);
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
 #define IRQ_BASE	0xfe00
+#define TEMP_BUF	0x5b00
+#define BPP_SHIFT	0
 #endif
 
 #if defined(CPC)
 #define SETUP_STACK()	__asm__("ld sp, #0x95fc")
 #define IRQ_BASE	0x9600
+#define TEMP_BUF	0xa000
+#define BPP_SHIFT	1
 #endif
 
 static void __sdcc_call_hl(void) __naked {
@@ -348,7 +354,7 @@ static void uncompress(byte *dst, const byte *src, word size) {
 }
 
 static void display_image(struct Image *img, byte x, byte y) {
-    byte *ptr = (byte *) 0x5b00;
+    byte *ptr =  (byte *) TEMP_BUF;
     uncompress(ptr, img->pixel, img->pixel_size);
 
     byte bottom = (y + img->h) << 3;
@@ -356,6 +362,8 @@ static void display_image(struct Image *img, byte x, byte y) {
 	memcpy(map_y[i] + x, ptr, img->w);
 	ptr += img->w;
     }
+
+#if defined(ZXS)
     uncompress(ptr, img->color, img->color_size);
     byte *addr = (byte *) 0x5800 + (y << 5) + x;
     for (byte i = 0; i < img->h; i++) {
@@ -363,6 +371,7 @@ static void display_image(struct Image *img, byte x, byte y) {
 	ptr += img->w;
 	addr += 0x20;
     }
+#endif
 }
 
 static void put_sprite(const byte *addr, byte x, byte y, byte w, byte h) {
@@ -417,7 +426,7 @@ static byte rrc(byte a) {
 
 static void shift_water_row(byte y) {
     byte *addr = map_y[y];
-    for (int8 i = 0; i < 32; i++) {
+    for (int8 i = 0; i < 32 << BPP_SHIFT; i++) {
 	byte value = *addr;
 	*addr++ = rlc(value);
     }
@@ -478,8 +487,8 @@ static void show_title(void) {
     }
     print_start_message();
 
+    display_image(&hazard, 24 << BPP_SHIFT, 23);
     display_image(&credits, 0, 23);
-    display_image(&hazard, 24, 23);
     display_image(&title, 0, 1);
 
     byte roll = 0;
@@ -649,12 +658,18 @@ static void shade_cone(byte *ptr, byte color, byte width, byte step) {
 static const byte bridge[] = { 0xff, 0x44, 0x22 };
 
 static void setup_moon_shade(void) {
+#if defined(ZXS)
     memset((void *) 0x5900, 1, 0x200);
     shade_cone((byte *) 0x5902, 5, 14, 0);
     shade_cone((byte *) 0x5903, 7, 12, 1);
     memset((void *) 0x5a80, 5, 0x18);
     memset((void *) 0x5aa0, 5, 0x18);
     memset((void *) 0x5ac0, 1, 0x40);
+#endif
+
+#if defined(CPC)
+    amstrad_cpc_select_palette(1);
+#endif
 }
 
 static void draw_bridge(void) {

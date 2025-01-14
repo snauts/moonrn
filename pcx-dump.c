@@ -21,8 +21,15 @@ struct Line {
 } line[128];
 
 static unsigned short pixel_addr(int x, int y) {
+#if defined(ZXS)
     int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
     return 0x4000 + (f << 5) + (x >> 3);
+#endif
+
+#if defined(CPC)
+    int f = ((y & 7) << 11) | (80 * (y >> 3));
+    return 0xC000 + f + (x >> 2);
+#endif
 }
 
 void hexdump(unsigned char *buf, int size) {
@@ -46,7 +53,21 @@ static unsigned char get_color(unsigned char *color) {
 	    break;
 	}
     }
+
+#if defined(ZXS)
     return result;
+#endif
+
+#if defined(CPC)
+    static const unsigned char dim[] = {
+	0, 1, 3, 3, 3, 3, 3, 3
+    };
+    static const unsigned char lit[] = {
+	0, 2, 3, 3, 3, 3, 3, 3
+    };
+    int index = result & 7;
+    return result & 0x40 ? lit[index] : dim[index];
+#endif
 }
 
 static int equals(unsigned char *src, int size) {
@@ -185,6 +206,8 @@ static unsigned char encode_ink(unsigned short colors) {
     return l | (f & 7) | ((b & 7) << 3);
 }
 
+#if defined(ZXS)
+#define PiB 8
 static unsigned char consume_pixels(unsigned char *buf, unsigned char on) {
     unsigned char ret = 0;
     for (int i = 0; i < 8; i++) {
@@ -193,6 +216,19 @@ static unsigned char consume_pixels(unsigned char *buf, unsigned char on) {
     }
     return ret;
 }
+#endif
+
+#if defined(CPC)
+#define PiB 4
+static unsigned char consume_pixels(unsigned char *buf) {
+    unsigned char ret = 0;
+    for (int i = 0; i < PiB; i++) {
+	ret = ret << 1;
+	ret |= ((buf[i] >> 1) & 1) | ((buf[i] << 4) & 0x10);
+    }
+    return ret;
+}
+#endif
 
 static int ink_index(int i) {
     return (i / header.w / 8) * (header.w / 8) + i % header.w / 8;
@@ -232,12 +268,16 @@ static void save_image(unsigned char *pixel, int pixel_size,
     remove_extension(header.name, name);
 
     compress_and_save(name, "pixel", pixel, pixel_size);
+#if defined(ZXS)
     compress_and_save(name, "color", color, color_size);
+#endif
 
     printf("static const struct Image %s = {\n", name);
     save_image_entry(name, "pixel");
+#if defined(ZXS)
     save_image_entry(name, "color");
-    printf(" .w = %d,", header.w / 8);
+#endif
+    printf(" .w = %d,", header.w / PiB);
     printf(" .h = %d,\n", header.h / 8);
     printf("};\n");
 }
@@ -252,11 +292,13 @@ static void save_raw(unsigned char *pixel, int pixel_size, char *extra) {
 
 static void save_bitmap(unsigned char *buf, int size) {
     int j = 0;
-    int pixel_size = size / 8;
+    int pixel_size = size / PiB;
     int color_size = size / 64;
     unsigned char pixel[pixel_size];
     unsigned char color[color_size];
     unsigned short on[color_size];
+
+#if defined(ZXS)
     for (int i = 0; i < size; i += 8) {
 	if (i / header.w % 8 == 0) {
 	    on[j++] = on_pixel(buf, i, header.w);
@@ -267,6 +309,13 @@ static void save_bitmap(unsigned char *buf, int size) {
     for (int i = 0; i < color_size; i++) {
 	color[i] = encode_ink(on[i]);
     }
+#endif
+
+#if defined(CPC)
+    for (int i = 0; i < size; i += PiB) {
+	pixel[i / PiB] = consume_pixels(buf + i);
+    }
+#endif
 
     switch (option) {
     case 'c':
