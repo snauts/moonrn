@@ -744,10 +744,17 @@ static void vblank_delay(word ticks) {
 static void sound_fx(word period, byte border) {
     vblank = 0;
     while (!vblank) {
+#if defined(ZXS)
 	out_fe(border | 0x10);
 	vblank_delay(period);
 	out_fe(0x0);
 	vblank_delay(period);
+#elif defined(CPC)
+	set_border(border);
+	vblank_delay(period);
+	set_border(0x54);
+	vblank_delay(period);
+#endif
     }
 }
 
@@ -774,7 +781,11 @@ static void fade_sound(byte ticks) {
     }
     else {
 	for (byte i = 0; i < ticks; i++) {
-	    static const byte border[] = { 1, 5, 7 };
+#if defined(ZXS)
+	    static const byte border[] = { 0x01, 0x05, 0x07 };
+#elif defined(CPC)
+	    static const byte border[] = { 0x52, 0x5D, 0x4A };
+#endif
 	    sound_fx(fade_period >> i, border[i]);
 	}
 	fade_period -= 50;

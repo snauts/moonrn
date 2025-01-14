@@ -59,3 +59,8 @@ static void amstrad_cpc_select_palette(byte num) {
 static void font_rom(void) {
     __asm__(".incbin \"font.rom\"");
 }
+
+static void set_border(byte color) {
+    gate_array(0x10);
+    gate_array(color);
+}
