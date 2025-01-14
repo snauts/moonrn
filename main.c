@@ -808,12 +808,23 @@ static void prepare_level(byte data) {
     fade_sound(3);
 }
 
+#if defined(ZXS)
 static const byte fade_in[] =  {
     0x18, 0x3c, 0x7e, 0xff,
 };
 static const byte fade_out[] = {
     0x7e, 0x3c, 0x18, 0x00,
 };
+#endif
+
+#if defined(CPC)
+static const byte fade_in[] =  {
+    0x03, 0x0f, 0xf0, 0xff,
+};
+static const byte fade_out[] = {
+    0xf0, 0x0f, 0x03, 0x00,
+};
+#endif
 
 static void fade_level(const byte *ptr) {
     while (*ptr != 0x00 && *ptr != 0xff) {
