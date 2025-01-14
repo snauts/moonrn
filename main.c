@@ -822,10 +822,11 @@ static byte *current_data;
 static byte **current_addr;
 static const byte *level_ptr;
 
-#define UPDATE_WAVE(addr, data) \
+#define UPDATE_WAVE(addr, data) { \
     *current_addr++ = addr; \
-    *current_data++ = data;
+    *current_data++ = data; }
 
+static byte two_byte;
 static void scroller(byte count, byte offset, byte data) {
     while (count-- > 0) {
 	byte distance = level_ptr[2] - offset;
@@ -833,13 +834,18 @@ static void scroller(byte count, byte offset, byte data) {
 
 	if (distance < WIDTH) {
 	    byte *addr = * (byte **) level_ptr;
-	    UPDATE_WAVE(addr + distance, data);
+	    addr = addr + distance;
+	    UPDATE_WAVE(addr, data);
+#if defined(CPC)
+	    if (two_byte) UPDATE_WAVE(++addr, data);
+#endif
 	}
 
 	level_ptr += 4;
     }
 }
 
+#if defined(ZXS)
 static const byte scroll_table[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -850,9 +856,29 @@ static const byte scroll_table[] = {
     0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00,
     0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff,
 };
+#endif
+
+#if defined(CPC)
+static const byte scroll_table[] = {
+    0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff,
+    0xcc, 0x00, 0xcc, 0x00,
+    0x33, 0xff, 0x33, 0xff,
+    0xee, 0xcc, 0x88, 0x00,
+    0x11, 0x33, 0x77, 0xff,
+};
+#endif
 
 static byte scroll_data(byte i) {
+#if defined(ZXS)
     return scroll_table[(i << 3) + (scroll & 7)];
+#endif
+
+#if defined(CPC)
+    return scroll_table[(i << 2) + ((scroll & 6) >> 1)];
+#endif
 }
 
 static void draw_and_clear_bridge(void) {
@@ -883,12 +909,15 @@ static void move_level(void) {
     current_addr = wave_addr;
     level_ptr = current_level + WAVE_TYPES;
     for (byte i = 0; i < WAVE_TYPES; i++) {
+#if defined(CPC)
+	two_byte = i < 2;
+#endif
 	scroller(current_level[i], offset, scroll_data(i));
 	if (i & 1) offset >>= 1;
     }
     draw_and_clear_bridge();
+    scroll += 1 + BPP_SHIFT;
     *current_addr = 0;
-    scroll++;
 }
 
 static byte level_done(void) {
@@ -905,8 +934,9 @@ static void level_message(const char *msg) {
 static void select_level(byte i) {
     const struct Level *ptr = level_list + i;
     current_level = ptr->level;
-    level_length = ptr->length;
-    level_mask = (ptr->mask << BPP_SHIFT) | 1;
+    level_length = ptr->length << BPP_SHIFT;
+    level_mask = ptr->mask << BPP_SHIFT;
+    level_mask = level_mask | 1;
     level_message(ptr->msg);
 }
 
