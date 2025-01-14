@@ -1132,12 +1132,17 @@ static void draw_with_boat(byte *buf, byte x) {
     draw_boat(buf, x);
 }
 
+static byte *wave_sprite[2];
+static void animate_wave_sprite(void) {
+    frame = wave_sprite[(ticker & 16) != 0];
+}
+
 static void boat_leaves(byte *buf) {
     byte x = 88;
     while (x < 232) {
 	wait_vblank();
 	draw_with_boat(buf, x);
-	animate_wave();
+	animate_wave_sprite();
 	splashing(0);
 	x = x + 1;
 	draw_with_boat(buf, x);
@@ -1169,15 +1174,17 @@ static void jump_in_boat(byte *buf) {
 	vel = vel + 1;
 	x++;
     }
-    animate_wave();
+    animate_wave_sprite();
     draw_in_boat(88);
     delay(25);
 }
 
 static void animate_finish(void) {
     free = tmp;
-    byte *laiva = generate_one(boat, 3, 8);
     byte *jumper = generate_jumper();
+    byte *laiva = generate_one(boat, 3, 8);
+    wave_sprite[0] = generate_one(waver, 1, 8);
+    wave_sprite[1] = generate_one(waver + PLAYER, 1, 8);
     outro_dimming();
     boat_arrives(laiva);
     jump_in_boat(jumper);
