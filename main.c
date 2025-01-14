@@ -484,12 +484,20 @@ static void lit_line(byte offset, byte color) {
 
 static byte rlc(byte a) {
     __asm__("rlc a");
+#if defined(CPC)
+    if (a & 0x10) a = (a | 0x01) & 0x0f;
+#endif
     return a;
 }
 
 static byte rrc(byte a) {
+#if defined(ZXS)
     __asm__("rrc a");
     return a;
+#elif defined(CPC)
+    if (a & 0x01) a |= 0x10;
+    return a >> 1;
+#endif
 }
 
 static void shift_water_row(byte y) {
