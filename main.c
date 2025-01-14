@@ -64,6 +64,7 @@ static void memcpy(byte *dst, const byte *src, word len) {
 static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
+    __asm__("push bc");
     __asm__("push hl");
 
 #if defined(AY)
@@ -71,7 +72,6 @@ static void interrupt(void) __naked {
     __asm__("and a");
     __asm__("jp z, skip_AY");
 
-    __asm__("push bc");
     __asm__("push de");
     __asm__("push ix");
     __asm__("push iy");
@@ -80,7 +80,6 @@ static void interrupt(void) __naked {
     __asm__("pop iy");
     __asm__("pop ix");
     __asm__("pop de");
-    __asm__("pop bc");
 
     __asm__("skip_AY:");
 #endif
@@ -94,10 +93,35 @@ static void interrupt(void) __naked {
     __asm__("ld (_space_up), a");
 #endif
 
+#if defined(CPC)
+    __asm__("ld bc, #0xf782");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf40e");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf6c0");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf792");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf645");
+    __asm__("out (c), c");
+    __asm__("ld b, #0xf4");
+    __asm__("in a, (c)");
+    __asm__("ld bc, #0xf782");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+
+    __asm__("and #0x80");
+    __asm__("ld (_space_up), a");
+#endif
+
     __asm__("ld hl, #_ticker");
     __asm__("inc (hl)");
 
     __asm__("pop hl");
+    __asm__("pop bc");
     __asm__("pop af");
     __asm__("ei");
     __asm__("reti");
