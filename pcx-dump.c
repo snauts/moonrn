@@ -20,6 +20,10 @@ struct Line {
     int x, y, len, type;
 } line[128];
 
+static int is_file(const char *name) {
+    return strcmp(header.name, name) == 0;
+}
+
 static unsigned short pixel_addr(int x, int y) {
 #if defined(ZXS)
     int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
@@ -75,7 +79,7 @@ static unsigned char get_color(unsigned char *color) {
 	0, 0, 0, 0, 0, 0, 0, 1,
     };
     const unsigned char *ptr;
-    if (strcmp(header.name, "horizon.pcx") == 0) {
+    if (is_file("horizon.pcx") || is_file("boat.pcx")) {
 	ptr = horizon_map;
     }
     else if (option == 'p') {
