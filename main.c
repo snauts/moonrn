@@ -67,6 +67,13 @@ static void interrupt(void) __naked {
     __asm__("push bc");
     __asm__("push hl");
 
+#if defined(CPC)
+    __asm__("ld b, #0xf5");
+    __asm__("in a, (c)");
+    __asm__("and a, #1");
+    __asm__("jp z, skip_handler");
+#endif
+
 #if defined(AY)
     __asm__("ld a, (_enable_AY)");
     __asm__("and a");
@@ -85,9 +92,6 @@ static void interrupt(void) __naked {
 #endif
 
 #if defined(ZXS)
-    __asm__("ld a, #1");
-    __asm__("ld (_vblank), a");
-
     __asm__("in a, (#0xfe)");
     __asm__("and #1");
     __asm__("ld (_space_up), a");
@@ -117,8 +121,13 @@ static void interrupt(void) __naked {
     __asm__("ld (_space_up), a");
 #endif
 
+    __asm__("ld a, #1");
+    __asm__("ld (_vblank), a");
+
     __asm__("ld hl, #_ticker");
     __asm__("inc (hl)");
+
+    __asm__("skip_handler:");
 
     __asm__("pop hl");
     __asm__("pop bc");
