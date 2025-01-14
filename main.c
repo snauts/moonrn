@@ -773,7 +773,7 @@ static void fade_sound(byte ticks) {
 #if defined(ZXS)
 	    static const byte border[] = { 0x01, 0x05, 0x07 };
 #elif defined(CPC)
-	    static const byte border[] = { 0x52, 0x5D, 0x4A };
+	    static const byte border[] = { 0x52, 0x5D, 0x4B };
 #endif
 	    sound_fx(fade_period >> i, border[i]);
 	}
