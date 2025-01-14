@@ -63,8 +63,8 @@ static unsigned char get_color(unsigned char *color) {
 	return result;
     }
     static const unsigned char default_map[] = {
-	0, 1, 0, 0, 0, 0, 3, 0,
-	0, 2, 0, 0, 0, 0, 3, 0,
+	0, 1, 2, 0, 0, 0, 3, 0,
+	0, 2, 2, 0, 0, 0, 3, 0,
     };
     static const unsigned char horizon_map[] = {
 	0, 2, 0, 0, 1, 0, 1, 3,
