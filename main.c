@@ -745,6 +745,16 @@ static void vblank_delay(word ticks) {
 
 static void sound_fx(word period, byte border) {
     vblank = 0;
+
+#if defined(CPC)
+    silence_music();
+    cpc_psg(0x7, 0x3E);
+    cpc_psg(0x8, 0x0F);
+    period = period << 1;
+    cpc_psg(0, period & 0xff);
+    cpc_psg(1, period >> 8);
+#endif
+
     while (!vblank) {
 #if defined(ZXS)
 	out_fe(border | 0x10);
@@ -758,6 +768,11 @@ static void sound_fx(word period, byte border) {
 	vblank_delay(period);
 #endif
     }
+
+#if defined(CPC)
+    cpc_psg(0x7, 0x3F);
+    resume_music();
+#endif
 }
 
 static void drown_player(void) {
