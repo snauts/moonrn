@@ -594,6 +594,7 @@ static void clear_player(void) {
 }
 
 static void erase_player(byte x, byte y) {
+    x = x << BPP_SHIFT;
     for (byte i = 0; i < 8; i++) {
 	byte *addr = map_y[y++] + x;
 #if defined(CPC)
@@ -755,7 +756,7 @@ static void sound_fx(word period, byte border) {
 static void drown_player(void) {
     word period = 20;
     frame = drowner;
-    erase_player(PLAYER, pos);
+    erase_player(8, pos);
     while (frame < drowner + sizeof(drowner)) {
 	draw_player();
 	sound_fx(period, 0);
@@ -1258,8 +1259,16 @@ static void game_over(void) {
 }
 
 static void lose_cleanup(void) {
-    map_y[63][8] = map_y[63][9];
-    memset((void *) 0x4800, 0, 0x1000);
+    byte *addr = map_y[63];
+#if defined(ZXS)
+    addr[8] = addr[9];
+#endif
+#if defined(CPC)
+    memcpy(addr + 16, addr + 18, 2);
+#endif
+    for (byte y = 64; y < 192; y++) {
+	memset(map_y[y], 0, WIDTH);
+    }
     if (lives >= 0 && !practice_run()) {
 	erase_player(21 + lives, 44);
     }
