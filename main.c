@@ -1147,12 +1147,20 @@ static byte flip_bits(byte source) {
 	result |= source & 1;
 	source = source >> 1;
     }
+#if defined(CPC)
+    result = (result >> 4) | (result << 4);
+#endif
     return result;
 }
 
 static void flip_runner(byte *buf) {
-    for (byte i = 0; i < SIZE(runner); i++) {
-	buf[i] = flip_bits(runner[i]);
+    for (byte i = 0; i < SIZE(runner); i += BPP_SHIFT + 1) {
+#if defined(ZXS)
+	*buf++ = flip_bits(runner[i]);
+#elif defined(CPC)
+	*buf++ = flip_bits(runner[i + 1]);
+	*buf++ = flip_bits(runner[i + 0]);
+#endif
     }
 }
 
