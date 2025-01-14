@@ -92,6 +92,7 @@ static void interrupt(void) __naked {
 #endif
 
 #if defined(ZXS)
+    __asm__("ld a, #0x7f");
     __asm__("in a, (#0xfe)");
     __asm__("and #1");
     __asm__("ld (_space_up), a");
