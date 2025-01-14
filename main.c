@@ -410,19 +410,30 @@ static void display_image(struct Image *img, byte x, byte y) {
 #endif
 }
 
+#define PiB (8 >> BPP_SHIFT) /* pixels in byte */
 static byte *generate_sprite(const byte *src, byte *dst, byte w, byte h) {
+#if defined(CPC)
+    static const byte mask1[] = { 0xff, 0x77, 0x33, 0x11 };
+    static const byte mask2[] = { 0xff, 0xee, 0xcc, 0x88, 0x00 };
+#endif
     byte **ptr = dst;
     byte *buf = dst + 16;
     w = w << BPP_SHIFT;
-    for (byte i = 0; i < 8; i++) {
+    for (byte i = 0; i < PiB; i++) {
 	ptr[i] = buf;
 	const byte *from = src;
 	for (byte y = 0; y < h; y++) {
 	    memset(buf, 0, w + 1);
 	    for (byte x = 0; x < w; x++) {
+		byte j = (PiB - i);
 		byte data = *from++;
+#if defined(ZXS)
 		buf[0] |= data >> i;
-		buf[1] |= data << (8 - i);
+		buf[1] |= data << j;
+#elif defined(CPC)
+		buf[0] |= (data >> i) & mask1[i];
+		buf[1] |= (data << j) & mask2[j];
+#endif
 		buf++;
 	    }
 	    buf++;
