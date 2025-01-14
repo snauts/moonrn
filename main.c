@@ -533,7 +533,7 @@ static const byte *frame;
 #define MAX_WAVES	128
 #define VELOCITY	-12
 #define STANDING	128
-#define BRIDGE_LEN	72
+#define BRIDGE_LEN	(72 << BPP_SHIFT)
 #define BRIDGE_TOP	136
 #define WAVE_TYPES	8
 
@@ -713,7 +713,7 @@ static void setup_moon_shade(void) {
 static void draw_bridge(void) {
     for (byte i = 0; i <= 2; i++) {
 	byte *addr = map_y[BRIDGE_TOP + i];
-	memset(addr, bridge[i], BRIDGE_LEN / (8 >> BPP_SHIFT));
+	memset(addr, bridge[i], BRIDGE_LEN >> 3);
     }
 }
 
@@ -888,8 +888,8 @@ static void draw_and_clear_bridge(void) {
     if (scroll >= start) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
-	    byte *addr = map_y[BRIDGE_TOP + i] + (WIDTH - 1) - offset;
-	    UPDATE_WAVE(addr, data & bridge[i]);
+	    byte *addr = map_y[BRIDGE_TOP + i] + WIDTH - 1;
+	    UPDATE_WAVE(addr - offset, data & bridge[i]);
 	}
     }
 
@@ -897,7 +897,7 @@ static void draw_and_clear_bridge(void) {
 	byte data = scroll_data(6);
 	byte from = (scroll < BRIDGE_LEN ? 8 << BPP_SHIFT : 40 << BPP_SHIFT);
 	for (byte i = BRIDGE_TOP; i <= BRIDGE_TOP + 2; i++) {
-	    byte *addr = map_y[i] + from - offset;
+	    byte *addr = map_y[i] + from - offset + BPP_SHIFT;
 	    UPDATE_WAVE(addr, data & *addr);
 	}
     }
