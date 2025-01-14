@@ -1,6 +1,4 @@
-#if defined(ZXS)
 #define AY
-#endif
 
 typedef signed char int8;
 typedef signed short int16;
