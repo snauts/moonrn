@@ -388,8 +388,8 @@ static void save_level(unsigned char *buf) {
 	unsigned short addr = pixel_addr(0, line[i].y + 64);
 	level[n++] = addr & 0xff;
 	level[n++] = addr >> 8;
-	level[n++] = line[i].x / 8;
-	level[n++] = line[i].len / 8;
+	level[n++] = line[i].x / PiB;
+	level[n++] = line[i].len / PiB;
 	level[7 - type]++;
     }
 

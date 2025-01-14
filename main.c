@@ -46,6 +46,7 @@ void reset(void);
 #define FONT_PTR	((byte *) 0x3c00)
 #define IRQ_BASE	0xfe00
 #define TEMP_BUF	0x5b00
+#define WIDTH		0x20
 #define BPP_SHIFT	0
 #endif
 
@@ -54,6 +55,7 @@ void reset(void);
 #define FONT_PTR	(((byte *) &font_rom) - 0x100)
 #define IRQ_BASE	0x9600
 #define TEMP_BUF	0xa000
+#define WIDTH		0x40
 #define BPP_SHIFT	1
 #endif
 
@@ -691,7 +693,8 @@ static void setup_moon_shade(void) {
 
 static void draw_bridge(void) {
     for (byte i = 0; i <= 2; i++) {
-	memset(map_y[BRIDGE_TOP + i], bridge[i], BRIDGE_LEN / 8);
+	byte *addr = map_y[BRIDGE_TOP + i];
+	memset(addr, bridge[i], BRIDGE_LEN / (8 >> BPP_SHIFT));
     }
 }
 
@@ -769,11 +772,11 @@ static void prepare_level(byte data) {
     for (byte n = 0; n < total; n++) {
 	byte offset = ptr[2];
 	offset = offset & level_mask;
-	if (offset < 0x20) {
+	if (offset < WIDTH) {
 	    byte length = ptr[3];
 	    byte *addr = * (byte **) ptr + offset;
-	    if (offset + length >= 0x20) {
-		length = 0x20 - offset;
+	    if (offset + length >= WIDTH) {
+		length = WIDTH - offset;
 	    }
 	    memset(addr, data, length);
 	}
@@ -809,7 +812,7 @@ static void scroller(byte count, byte offset, byte data) {
 	byte distance = level_ptr[2] - offset;
 	distance = (distance - 1) & level_mask;
 
-	if (distance < 0x20) {
+	if (distance < WIDTH) {
 	    byte *addr = * (byte **) level_ptr;
 	    UPDATE_WAVE(addr + distance, data);
 	}
