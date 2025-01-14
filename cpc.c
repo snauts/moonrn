@@ -55,3 +55,7 @@ static void init_gate_array(const byte *ptr, byte size) {
 static void amstrad_cpc_select_palette(byte num) {
     init_gate_array(num == 0 ? pal0 : pal1, SIZE(pal0));
 }
+
+static void font_rom(void) {
+    __asm__(".incbin \"font.rom\"");
+}

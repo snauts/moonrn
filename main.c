@@ -43,6 +43,7 @@ void reset(void);
 
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
+#define FONT_PTR	((byte *) 0x3c00)
 #define IRQ_BASE	0xfe00
 #define TEMP_BUF	0x5b00
 #define BPP_SHIFT	0
@@ -50,6 +51,7 @@ void reset(void);
 
 #if defined(CPC)
 #define SETUP_STACK()	__asm__("ld sp, #0x95fc")
+#define FONT_PTR	(((byte *) &font_rom) - 0x100)
 #define IRQ_BASE	0x9600
 #define TEMP_BUF	0xa000
 #define BPP_SHIFT	1
@@ -253,20 +255,29 @@ static void clear_screen(void) {
 }
 
 static void put_char(char symbol, byte x, byte y) {
-    byte shift = x & 7;
-    byte offset = x >> 3;
-    byte *addr = (byte *) 0x3c00 + (symbol << 3);
+    byte shift = x & (7 >> BPP_SHIFT);
+    byte offset = x >> (3 - BPP_SHIFT);
+    byte *addr = FONT_PTR + (symbol << 3);
     for (byte i = 0; i < 8; i++) {
 	byte data = *addr++;
 	byte *ptr = map_y[y + i] + offset;
+#if defined(ZXS)
 	ptr[0] |= (data >> shift);
 	ptr[1] |= (data << (8 - shift));
+#endif
+
+#if defined(CPC)
+	byte value = data >> shift;
+	ptr[0] |= value >> 4;
+	ptr[1] |= value & 0xf;
+	ptr[2] |= (data << (4 - shift)) & 0xf;
+#endif
     }
 }
 
 static byte char_mask(char symbol) {
     byte mask = 0;
-    byte *addr = (byte *) 0x3c00 + (symbol << 3);
+    byte *addr = FONT_PTR + (symbol << 3);
     for (byte i = 0; i < 8; i++) {
 	mask |= *addr++;
     }
@@ -404,6 +415,7 @@ static const char * const intro[] = {
 };
 
 static void lit_line(byte offset, byte color) {
+#if defined(ZXS)
     word addr = 0x5900;
     for (byte i = 0; i < 16; i++) {
 	if (offset < 0x20) {
@@ -412,6 +424,11 @@ static void lit_line(byte offset, byte color) {
 	addr += 32;
 	offset++;
     }
+#endif
+
+#if defined(CPC)
+    offset; color;
+#endif
 }
 
 static byte rlc(byte a) {
@@ -858,7 +875,7 @@ static byte level_done(void) {
 
 static void level_message(const char *msg) {
     for (byte y = 32; y < 40; y++) {
-	memset(map_y[y] + 0x13, 0, 10);
+	memset(map_y[y] + (0x13 << BPP_SHIFT), 0, 10 << BPP_SHIFT);
     }
     put_str(msg, 152 + str_offset(msg, 40), 32);
 }
