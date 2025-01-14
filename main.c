@@ -1160,14 +1160,12 @@ static void draw_away_runner(byte *buf, byte x) {
 
 static void player_run_away(void) {
     byte x = 64;
-    byte flip[64];
-    flip_runner(flip);
-
+    flip_runner(TEMP_BUF);
     wait_vblank();
     clear_player();
     while (x > 0) {
-	byte *ptr = flip;
-	ptr += (ticker & 0xe) << 2;
+	byte *ptr = TEMP_BUF;
+	ptr += (ticker & 0xe) << (2 + BPP_SHIFT);
 	draw_away_runner(ptr, x);
 	wait_vblank();
 	draw_away_runner(ptr, x);
