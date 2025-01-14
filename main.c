@@ -47,6 +47,7 @@ void reset(void);
 #define IRQ_BASE	0xfe00
 #define TEMP_BUF	0x5b00
 #define WIDTH		0x20
+#define PLAYER		8
 #define BPP_SHIFT	0
 #endif
 
@@ -56,6 +57,7 @@ void reset(void);
 #define IRQ_BASE	0x9600
 #define TEMP_BUF	0xa000
 #define WIDTH		0x40
+#define PLAYER		16
 #define BPP_SHIFT	1
 #endif
 
@@ -583,7 +585,11 @@ static void clear_player(void) {
     byte y = pos;
     const byte *ptr = frame;
     for (byte i = 0; i < 8; i++) {
-	map_y[y++][8] ^= *ptr++;
+	byte *addr = map_y[y++] + PLAYER;
+	*addr ^= *ptr++;
+#if defined(CPC)
+	*(++addr) ^= *ptr++;
+#endif
     }
 }
 
@@ -598,9 +604,14 @@ static byte draw_player(void) {
     const byte *ptr = frame;
     for (byte i = 0; i < 8; i++) {
 	byte data = *ptr++;
-	byte *addr = map_y[y++] + 8;
+	byte *addr = map_y[y++] + PLAYER;
 	if (*addr & data) return 1;
 	*addr |= data;
+#if defined(CPC)
+	data = *ptr++;
+	if (*(++addr) & data) return 1;
+	*addr |= data;
+#endif
     }
     return 0;
 }
@@ -644,11 +655,11 @@ static void move_player(void) {
 static void animate_player(void) {
     move_player();
     if (!contact()) {
-	frame = runner + (jump == 2 ? 0 : 48);
+	frame = runner + (jump == 2 ? 0 : (48 << BPP_SHIFT));
     }
     else {
-	if (ticker & 1) frame += 8;
-	if (frame - runner >= 64) {
+	if (ticker & 1) frame += PLAYER;
+	if (frame - runner >= 64 << BPP_SHIFT) {
 	    frame = runner;
 	}
     }
@@ -699,7 +710,7 @@ static void draw_bridge(void) {
 }
 
 static void animate_wave(void) {
-    frame = waver + (ticker & 16 ? 0 : 8);
+    frame = waver + (ticker & 16 ? 0 : PLAYER);
 }
 
 static byte on_bridge(void) {
