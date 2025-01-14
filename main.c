@@ -34,6 +34,7 @@ static volatile byte vblank;
 static volatile byte space_up;
 static volatile byte ticker;
 static byte *map_y[192];
+static void *tmp;
 
 void reset(void);
 
@@ -375,7 +376,8 @@ static void uncompress(byte *dst, const byte *src, word size) {
 }
 
 static void display_image(struct Image *img, byte x, byte y) {
-    byte *ptr =  (byte *) TEMP_BUF;
+    byte *ptr = tmp;
+    x = x << BPP_SHIFT;
     uncompress(ptr, img->pixel, img->pixel_size);
 
     byte bottom = (y + img->h) << 3;
@@ -499,11 +501,10 @@ static const char* start_string(void) {
 }
 
 static void print_start_message(void) {
-    char buf[48];
-    char *ptr = buf;
+    char *ptr = tmp;
     ptr = strcpy(ptr, "Press SPACE to ");
     ptr = strcpy(ptr, start_string());
-    center_msg(buf, 168);
+    center_msg(tmp, 168);
 }
 
 static void show_title(void) {
@@ -582,6 +583,7 @@ static void init_variables(void) {
     space_up = 0;
     frame = runner;
     reset_variables();
+    tmp = (void *) TEMP_BUF;
     run_num = (void *) &run_value;
 }
 
@@ -1026,12 +1028,11 @@ static const char *done_message(void) {
 }
 
 static void game_done(void) {
-    char buf[48];
-    char *ptr = buf;
+    char *ptr = tmp;
     ptr = strcpy(ptr, done_message());
     ptr = strcpy(ptr, " COMPLETE");
 
-    end_game(buf, 72);
+    end_game(tmp, 72);
 
     show_outro_text();
     if (!practice_run()) {
@@ -1170,12 +1171,11 @@ static void draw_away_runner(byte *buf, byte x) {
 
 static void player_run_away(void) {
     byte x = 64;
-    byte *flip = (byte *) TEMP_BUF;
-    flip_runner(flip);
+    flip_runner(tmp);
     wait_vblank();
     clear_player();
     while (x > 0) {
-	byte *ptr = flip;
+	byte *ptr = tmp;
 	ptr += (ticker & 0xe) << (2 + BPP_SHIFT);
 	draw_away_runner(ptr, x);
 	wait_vblank();
@@ -1287,12 +1287,11 @@ static void game_loop(void) {
 }
 
 static void put_fatal_level_name(void) {
-    char buf[48];
-    char *ptr = buf;
+    char *ptr = tmp;
     ptr = strcpy(ptr, "Pitch black depths of ");
     ptr = strcpy(ptr, level_list[level].msg);
     ptr = strcpy(ptr, " consumes you.");
-    center_msg(buf, 112);
+    center_msg(tmp, 112);
 }
 
 static void game_over(void) {
