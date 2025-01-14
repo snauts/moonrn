@@ -586,16 +586,20 @@ static void clear_player(void) {
     const byte *ptr = frame;
     for (byte i = 0; i < 8; i++) {
 	byte *addr = map_y[y++] + PLAYER;
-	*addr ^= *ptr++;
 #if defined(CPC)
-	*(++addr) ^= *ptr++;
+	*addr++ ^= *ptr++;
 #endif
+	*addr ^= *ptr++;
     }
 }
 
 static void erase_player(byte x, byte y) {
     for (byte i = 0; i < 8; i++) {
-	map_y[y++][x] = 0;
+	byte *addr = map_y[y++] + x;
+#if defined(CPC)
+	*addr++ = 0;
+#endif
+	*addr = 0;
     }
 }
 
@@ -605,13 +609,13 @@ static byte draw_player(void) {
     for (byte i = 0; i < 8; i++) {
 	byte data = *ptr++;
 	byte *addr = map_y[y++] + PLAYER;
+#if defined(CPC)
+	if (*addr & data) return 1;
+	*addr++ |= data;
+	data = *ptr++;
+#endif
 	if (*addr & data) return 1;
 	*addr |= data;
-#if defined(CPC)
-	data = *ptr++;
-	if (*(++addr) & data) return 1;
-	*addr |= data;
-#endif
     }
     return 0;
 }
@@ -751,6 +755,7 @@ static void sound_fx(word period, byte border) {
 static void drown_player(void) {
     word period = 20;
     frame = drowner;
+    erase_player(PLAYER, pos);
     while (frame < drowner + sizeof(drowner)) {
 	draw_player();
 	sound_fx(period, 0);
@@ -758,7 +763,7 @@ static void drown_player(void) {
 	period += 10;
 	if ((ticker & 3) == 0) {
 	    period -= 30;
-	    frame += 8;
+	    frame += PLAYER;
 	}
     }
 }
