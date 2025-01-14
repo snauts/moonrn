@@ -70,9 +70,16 @@ static unsigned char get_color(unsigned char *color) {
 	0, 2, 0, 0, 1, 0, 0, 3,
 	0, 2, 0, 0, 1, 0, 0, 3,
     };
+    static const unsigned char player_map[] = {
+	0, 0, 0, 0, 0, 0, 0, 1,
+	0, 0, 0, 0, 0, 0, 0, 1,
+    };
     const unsigned char *ptr;
     if (strcmp(header.name, "horizon.pcx") == 0) {
 	ptr = horizon_map;
+    }
+    else if (option == 'p') {
+	ptr = player_map;
     }
     else {
 	ptr = default_map;
