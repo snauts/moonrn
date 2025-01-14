@@ -1,4 +1,6 @@
+#if defined(ZXS)
 #define AY
+#endif
 
 typedef signed char int8;
 typedef signed short int16;
@@ -83,15 +85,17 @@ static void interrupt(void) __naked {
     __asm__("skip_AY:");
 #endif
 
+#if defined(ZXS)
     __asm__("ld a, #1");
     __asm__("ld (_vblank), a");
-
-    __asm__("ld hl, #_ticker");
-    __asm__("inc (hl)");
 
     __asm__("in a, (#0xfe)");
     __asm__("and #1");
     __asm__("ld (_space_up), a");
+#endif
+
+    __asm__("ld hl, #_ticker");
+    __asm__("inc (hl)");
 
     __asm__("pop hl");
     __asm__("pop af");
@@ -110,11 +114,6 @@ static void out_fe(byte data) {
     __asm__("out (#0xfe), a"); data;
 }
 
-static byte in_fe(byte a) __naked {
-    __asm__("in a, (#0xfe)"); a;
-    __asm__("ret");
-}
-
 static void wait_vblank(void) {
     vblank = 0;
     while (!vblank) { }
@@ -123,6 +122,10 @@ static void wait_vblank(void) {
 static void delay(byte n) {
     while (n-- > 0) wait_vblank();
 }
+
+#if defined(CPC)
+#include "cpc.c"
+#endif
 
 #if defined(AY)
 static byte enable_AY;
@@ -171,35 +174,29 @@ static void setup_system(void) {
     enable_AY = 0;
 #endif
 
-#if defined(ZXS)
     byte top = (byte) ((IRQ_BASE >> 8) - 1);
     word jmp_addr = (top << 8) | top;
     BYTE(jmp_addr + 0) = 0xc3;
     WORD(jmp_addr + 1) = ADDR(&interrupt);
     memset((byte *) IRQ_BASE, top, 0x101);
     setup_irq(IRQ_BASE >> 8);
+
+#if defined(CPC)
+    setup_system_amstrad_cpc();
 #endif
-}
-
-static const byte pixel_map[] = {
-    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-};
-
-static void put_pixel(byte x, byte y) {
-    map_y[y][x >> 3] |= pixel_map[x & 7];
-}
-
-static byte get_pixel(byte x, byte y) {
-    return map_y[y][x >> 3] & pixel_map[x & 7];
 }
 
 static void precalculate(void) {
-#if defined(ZXS)
     for (byte y = 0; y < 192; y++) {
+#if defined(ZXS)
 	byte f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
 	map_y[y] = (byte *) (0x4000 + (f << 5));
-    }
 #endif
+#if defined(CPC)
+	word f = ((y & 7) << 11) | mul80(y >> 3);
+	map_y[y] = (byte *) (0xC000 + f);
+#endif
+    }
 }
 
 static void clear_screen(void) {
@@ -207,6 +204,11 @@ static void clear_screen(void) {
     memset((byte *) 0x5800, 0x00, 0x300);
     memset((byte *) 0x4000, 0x00, 0x1800);
     out_fe(0);
+#endif
+
+#if defined(CPC)
+    memset((byte *) 0xC000, 0x00, 0x4000);
+    amstrad_cpc_select_palette(0);
 #endif
 }
 
