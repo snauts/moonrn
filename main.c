@@ -984,7 +984,9 @@ static void select_level(byte i) {
 static void end_game(const char *msg, byte y) {
     clear_screen();
     center_msg(msg, y);
+#if defined(ZXS)
     memset((void *) 0x5900, 1, 0x200);
+#endif
 }
 
 static const char * const outro[] = {
