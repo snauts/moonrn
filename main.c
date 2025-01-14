@@ -726,7 +726,7 @@ static void draw_bridge(void) {
 }
 
 static void animate_wave(void) {
-    frame = waver + (ticker & 16 ? 0 : PLAYER);
+    frame = waver + (ticker & 16 ? PLAYER : 0);
 }
 
 static byte on_bridge(void) {
@@ -1221,6 +1221,7 @@ static void change_level(void) {
 }
 
 static void stop_player(void) {
+    ticker = 0;
     clear_player();
     animate_wave();
     draw_player();
