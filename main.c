@@ -1218,9 +1218,9 @@ static void no_lives(void) {
 }
 
 static void top_level(void) {
+    setup_moon_shade();
     display_image(&horizon, 0, 0);
     if (hard_run()) no_lives();
-    setup_moon_shade();
     select_music(&music_tune);
     select_level(level);
 

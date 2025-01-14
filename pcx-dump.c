@@ -59,14 +59,25 @@ static unsigned char get_color(unsigned char *color) {
 #endif
 
 #if defined(CPC)
-    static const unsigned char dim[] = {
-	0, 1, 3, 3, 3, 3, 3, 3
+    if (option == 'l') {
+	return result;
+    }
+    static const unsigned char default_map[] = {
+	0, 1, 0, 0, 0, 0, 3, 0,
+	0, 2, 0, 0, 0, 0, 3, 0,
     };
-    static const unsigned char lit[] = {
-	0, 2, 3, 3, 3, 3, 3, 3
+    static const unsigned char horizon_map[] = {
+	0, 2, 0, 0, 1, 0, 0, 3,
+	0, 2, 0, 0, 1, 0, 0, 3,
     };
-    int index = result & 7;
-    return result & 0x40 ? lit[index] : dim[index];
+    const unsigned char *ptr;
+    if (strcmp(header.name, "horizon.pcx") == 0) {
+	ptr = horizon_map;
+    }
+    else {
+	ptr = default_map;
+    }
+    return ptr[(result & 0x07) + ((result & 0x40) >> 3)];
 #endif
 }
 
