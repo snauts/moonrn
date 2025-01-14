@@ -882,22 +882,22 @@ static byte scroll_data(byte i) {
 }
 
 static void draw_and_clear_bridge(void) {
-    byte offset = scroll >> 3;
-    word start = level_length - 256;
+    byte offset = (scroll >> 3) & (WIDTH - 1);
+    word start = level_length - (256 << BPP_SHIFT);
 
     if (scroll >= start) {
 	byte data = scroll_data(7);
 	for (byte i = 0; i <= 2; i++) {
-	    byte *addr = map_y[BRIDGE_TOP + i] + 31 - (offset & 0x1f);
+	    byte *addr = map_y[BRIDGE_TOP + i] + (WIDTH - 1) - offset;
 	    UPDATE_WAVE(addr, data & bridge[i]);
 	}
     }
 
     if (scroll < BRIDGE_LEN || scroll >= BRIDGE_LEN + start) {
 	byte data = scroll_data(6);
-	byte from = scroll < BRIDGE_LEN ? 8 : 40;
+	byte from = (scroll < BRIDGE_LEN ? 8 << BPP_SHIFT : 40 << BPP_SHIFT);
 	for (byte i = BRIDGE_TOP; i <= BRIDGE_TOP + 2; i++) {
-	    byte *addr = map_y[i] + from - (offset & 0x1f);
+	    byte *addr = map_y[i] + from - offset;
 	    UPDATE_WAVE(addr, data & *addr);
 	}
     }
