@@ -841,6 +841,10 @@ static const byte *level_ptr;
 
 static byte two_byte;
 static void scroller(byte count, byte offset, byte data) {
+#if defined(CPC)
+    if (two_byte) offset++;
+#endif
+
     while (count-- > 0) {
 	byte distance = level_ptr[2] - offset;
 	distance = (distance - 1) & level_mask;
