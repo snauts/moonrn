@@ -398,11 +398,12 @@ static void display_image(struct Image *img, byte x, byte y) {
 }
 
 static void put_sprite(const byte *addr, byte x, byte y, byte w, byte h) {
-    byte right = x & 7;
-    byte left = 8 - right;
-    byte top = y + h;
-    x = x >> 3;
+    byte right = x & (7 >> BPP_SHIFT);
+    byte left = (8 >> BPP_SHIFT) - right;
+    x = x >> (3 - BPP_SHIFT);
+    w = w << BPP_SHIFT;
 
+    byte top = y + h;
     for (; y < top; y++) {
 	byte *ptr = map_y[y] + x;
 	for (byte i = 0; i < w; i++) {
