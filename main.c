@@ -35,10 +35,16 @@ static byte *map_y[192];
 
 void reset(void);
 
+#define SPACE_DOWN()	!space_up
+
 #if defined(ZXS)
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
-#define SPACE_DOWN()	!space_up
 #define IRQ_BASE	0xfe00
+#endif
+
+#if defined(CPC)
+#define SETUP_STACK()	__asm__("ld sp, #0x95fc")
+#define IRQ_BASE	0x9600
 #endif
 
 static void __sdcc_call_hl(void) __naked {
