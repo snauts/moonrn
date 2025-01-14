@@ -57,3 +57,7 @@ fuse: zxs
 
 clean:
 	rm -f moonrn* pcx-dump data.h
+
+crop:
+	dd if=music.pt3 of=tempory.pt3 bs=1 skip=100
+	mv tempory.pt3 music.pt3
