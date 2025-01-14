@@ -1119,8 +1119,8 @@ static void boat_arrives(void) {
     draw_boat(x);
 }
 
-static void draw_jumper(byte x, byte y) {
-    put_sprite(runner + (48 << BPP_SHIFT), x, y, 1, 8);
+static void draw_jumper(byte *ptr, byte x, byte y) {
+    put_sprite(ptr, x, y, 1, 8);
 }
 
 static void draw_in_boat(byte x) {
@@ -1145,15 +1145,21 @@ static void boat_leaves(void) {
     draw_boat(x);
 }
 
+static byte *generate_jumper(void) {
+    generate_sprite(runner + (48 << BPP_SHIFT), tmp, 1, 8);
+    return tmp;
+}
+
 static void jump_in_boat(void) {
     byte x = 64;
     byte y = 128;
+    byte *buf = generate_jumper();
     vel = VELOCITY;
     clear_player();
     while (y < 142) {
-	draw_jumper(x, y);
+	draw_jumper(buf, x, y);
 	wait_vblank();
-	draw_jumper(x, y);
+	draw_jumper(buf, x, y);
 	y = y + (vel >> 2);
 	vel = vel + 1;
 	x++;
