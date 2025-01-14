@@ -413,6 +413,7 @@ static void display_image(struct Image *img, byte x, byte y) {
 static byte *generate_sprite(const byte *src, byte *dst, byte w, byte h) {
     byte **ptr = dst;
     byte *buf = dst + 16;
+    w = w << BPP_SHIFT;
     for (byte i = 0; i < 8; i++) {
 	ptr[i] = buf;
 	const byte *from = src;
@@ -1124,7 +1125,7 @@ static void draw_jumper(byte *ptr, byte x, byte y) {
 }
 
 static void draw_in_boat(byte x) {
-    put_sprite(frame, x + 8, 142, 1, 6);
+    put_sprite((void *) frame, x + 8, 142, 1, 6);
 }
 
 static void draw_with_boat(byte *buf, byte x) {
