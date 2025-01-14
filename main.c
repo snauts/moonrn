@@ -235,8 +235,7 @@ static void precalculate(void) {
 #if defined(ZXS)
 	byte f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
 	map_y[y] = (byte *) (0x4000 + (f << 5));
-#endif
-#if defined(CPC)
+#elif defined(CPC)
 	word f = ((y & 7) << 11) | mul80(y >> 3);
 	map_y[y] = (byte *) (0xC000 + f);
 #endif
@@ -248,9 +247,7 @@ static void clear_screen(void) {
     memset((byte *) 0x5800, 0x00, 0x300);
     memset((byte *) 0x4000, 0x00, 0x1800);
     out_fe(0);
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
     memset((byte *) 0xC000, 0x00, 0x4000);
     amstrad_cpc_select_palette(0);
 #endif
@@ -266,9 +263,7 @@ static void put_char(char symbol, byte x, byte y) {
 #if defined(ZXS)
 	ptr[0] |= (data >> shift);
 	ptr[1] |= (data << (8 - shift));
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
 	byte value = data >> shift;
 	ptr[0] |= value >> 4;
 	ptr[1] |= value & 0xf;
@@ -426,9 +421,7 @@ static void lit_line(byte offset, byte color) {
 	addr += 32;
 	offset++;
     }
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
     offset; color;
 #endif
 }
@@ -624,9 +617,7 @@ static byte contact(void) {
 
 #if defined (ZXS)
     return *addr;
-#endif
-
-#if defined (CPC)
+#elif defined (CPC)
     return addr[0] | addr[1];
 #endif
 }
@@ -706,9 +697,7 @@ static void setup_moon_shade(void) {
     memset((void *) 0x5a80, 5, 0x18);
     memset((void *) 0x5aa0, 5, 0x18);
     memset((void *) 0x5ac0, 1, 0x40);
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
     amstrad_cpc_select_palette(1);
 #endif
 }
@@ -826,9 +815,7 @@ static const byte fade_in[] =  {
 static const byte fade_out[] = {
     0x7e, 0x3c, 0x18, 0x00,
 };
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
 static const byte fade_in[] =  {
     0x03, 0x0f, 0xf0, 0xff,
 };
@@ -882,9 +869,7 @@ static const byte scroll_table[] = {
     0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00,
     0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff,
 };
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
 static const byte scroll_table[] = {
     0x00, 0x00, 0x00, 0x00,
     0xff, 0xff, 0xff, 0xff,
@@ -900,9 +885,7 @@ static const byte scroll_table[] = {
 static byte scroll_data(byte i) {
 #if defined(ZXS)
     return scroll_table[(i << 3) + (scroll & 7)];
-#endif
-
-#if defined(CPC)
+#elif defined(CPC)
     return scroll_table[(i << 2) + ((scroll & 6) >> 1)];
 #endif
 }
@@ -1282,8 +1265,7 @@ static void lose_cleanup(void) {
     byte *addr = map_y[63];
 #if defined(ZXS)
     addr[8] = addr[9];
-#endif
-#if defined(CPC)
+#elif defined(CPC)
     memcpy(addr + 16, addr + 18, 2);
 #endif
     for (byte y = 64; y < 192; y++) {
