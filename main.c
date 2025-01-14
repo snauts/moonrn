@@ -332,6 +332,19 @@ static void put_str(const char *msg, byte x, byte y) {
     }
 }
 
+static char to_hex(byte digit) {
+    return (digit < 10) ? '0' + digit : 'A' + digit - 10;
+}
+
+static void put_num(word num, byte x, byte y) {
+    char msg[] = "0000";
+    for (byte i = 0; i < 4; i++) {
+	msg[3 - i] = to_hex(num & 0xf);
+	num = num >> 4;
+    }
+    put_str(msg, x, y);
+}
+
 static byte str_len(const char *msg) {
     byte len = 0;
     while (*msg != 0) {
@@ -397,20 +410,35 @@ static void display_image(struct Image *img, byte x, byte y) {
 #endif
 }
 
-static void put_sprite(const byte *addr, byte x, byte y, byte w, byte h) {
-    byte right = x & (7 >> BPP_SHIFT);
-    byte left = (8 >> BPP_SHIFT) - right;
-    x = x >> (3 - BPP_SHIFT);
-    w = w << BPP_SHIFT;
+static byte *generate_sprite(const byte *src, byte *dst, byte w, byte h) {
+    byte **ptr = dst;
+    byte *buf = dst + 16;
+    for (byte i = 0; i < 8; i++) {
+	ptr[i] = buf;
+	const byte *from = src;
+	for (byte y = 0; y < h; y++) {
+	    memset(buf, 0, w + 1);
+	    for (byte x = 0; x < w; x++) {
+		byte data = *from++;
+		buf[0] |= data >> i;
+		buf[1] |= data << (8 - i);
+		buf++;
+	    }
+	    buf++;
+	}
+    }
+    return buf;
+}
 
+static void put_sprite(byte *addr, byte x, byte y, byte w, byte h) {
+    addr = ((byte **) addr)[x & (7 >> BPP_SHIFT)];
+    x = x >> (3 - BPP_SHIFT);
+    w = (w << BPP_SHIFT) + 1;
     byte top = y + h;
     for (; y < top; y++) {
 	byte *ptr = map_y[y] + x;
 	for (byte i = 0; i < w; i++) {
-	    byte data = * addr++;
-	    ptr[0] ^= (data >> right);
-	    ptr[1] ^= (data << left);
-	    ptr++;
+	    *ptr++ ^= *addr++;
 	}
     }
 }
@@ -1170,14 +1198,26 @@ static void draw_away_runner(byte *buf, byte x) {
     put_sprite(buf, x, 128, 1, 8);
 }
 
+static void generate_runner(byte **frm) {
+    flip_runner(tmp);
+    byte *ptr = tmp;
+    byte *buf = tmp;
+    buf += sizeof(runner);
+    for (byte i = 0; i < 8; i++) {
+	frm[i] = buf;
+	buf = generate_sprite(ptr, buf, 1, 8);
+	ptr += PLAYER;
+    }
+}
+
 static void player_run_away(void) {
     byte x = 64;
-    flip_runner(tmp);
+    byte *frm[8];
+    generate_runner(frm);
     wait_vblank();
     clear_player();
     while (x > 0) {
-	byte *ptr = tmp;
-	ptr += (ticker & 0xe) << (2 + BPP_SHIFT);
+	byte *ptr = frm[(ticker & 0xe) >> 1];
 	draw_away_runner(ptr, x);
 	wait_vblank();
 	draw_away_runner(ptr, x);
