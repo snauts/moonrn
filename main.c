@@ -617,7 +617,15 @@ static byte draw_player(void) {
 }
 
 static byte contact(void) {
-    return map_y[pos + 8][8];
+    byte *addr = map_y[pos + 8] + PLAYER;
+
+#if defined (ZXS)
+    return *addr;
+#endif
+
+#if defined (CPC)
+    return addr[0] | addr[1];
+#endif
 }
 
 static void double_jump(byte space) {
@@ -898,7 +906,7 @@ static void select_level(byte i) {
     const struct Level *ptr = level_list + i;
     current_level = ptr->level;
     level_length = ptr->length;
-    level_mask = ptr->mask;
+    level_mask = (ptr->mask << BPP_SHIFT) | 1;
     level_message(ptr->msg);
 }
 
