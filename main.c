@@ -185,6 +185,17 @@ static void stop_music(void) {
     Player_Pause();
 }
 
+static void silence_music(void) {
+    PT3_state |= (1 << 2);
+}
+
+static void resume_music(void) {
+    __asm__("di");
+    memset(AYREGS, 0, 14);
+    PT3_state &= ~(1 << 2);
+    __asm__("ei");
+}
+
 static void select_music(void *ptr) {
     static void *current;
     if (enable_AY) {
@@ -209,6 +220,8 @@ static void music_tune(void) {
 #else
 
 #define select_music(x)
+#define silence_music()
+#define resume_music()
 #define stop_music()
 
 #endif
