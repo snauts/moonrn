@@ -70,6 +70,9 @@ mame: cpc
 	mame cpc664 -uimodekey F1 -window -skip_gameinfo -flop1 moonrn.dsk \
 		-autoboot_delay 1 -ab "RUN \"MOONRN.BIN\"\n"
 
+cap: cpc
+	cap32 moonrn.dsk -a "RUN \"MOONRN.BIN\""
+
 crop:
 	dd if=music.pt3 of=tempory.pt3 bs=1 skip=100
 	mv tempory.pt3 music.pt3
