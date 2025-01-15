@@ -67,7 +67,7 @@ clean:
 	rm -f moonrn* pcx-dump data.h
 
 mame: cpc
-	mame cpc664 -window -skip_gameinfo -flop1 moonrn.dsk \
+	mame cpc664 -uimodekey F1 -window -skip_gameinfo -flop1 moonrn.dsk \
 		-autoboot_delay 1 -ab "RUN \"MOONRN.BIN\"\n"
 
 crop:

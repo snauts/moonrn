@@ -110,25 +110,8 @@ static void interrupt(void) __naked {
 #endif
 
 #if defined(CPC)
-    __asm__("ld bc, #0xf782");
-    __asm__("out (c), c");
-    __asm__("ld bc, #0xf40e");
-    __asm__("out (c), c");
-    __asm__("ld bc, #0xf6c0");
-    __asm__("out (c), c");
-    __asm__("ld bc, #0xf600");
-    __asm__("out (c), c");
-    __asm__("ld bc, #0xf792");
-    __asm__("out (c), c");
-    __asm__("ld bc, #0xf645");
-    __asm__("out (c), c");
-    __asm__("ld b, #0xf4");
-    __asm__("in a, (c)");
-    __asm__("ld bc, #0xf782");
-    __asm__("out (c), c");
-    __asm__("ld bc, #0xf600");
-    __asm__("out (c), c");
-
+    __asm__("ld a, #5");
+    __asm__("call _cpc_key");
     __asm__("and #0x80");
     __asm__("ld (_space_up), a");
 #endif

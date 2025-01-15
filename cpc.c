@@ -20,6 +20,30 @@ static byte cpc_psg(byte reg, byte val) __naked {
     __asm__("ret");
 }
 
+static byte cpc_key(byte line) __naked {
+    __asm__("ld bc, #0xf782");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf40e");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf6c0");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf792");
+    __asm__("out (c), c");
+    __asm__("ld b, #0xf6");
+    __asm__("or a, #0x40"); line;
+    __asm__("ld c, a");
+    __asm__("out (c), c");
+    __asm__("ld b, #0xf4");
+    __asm__("in a, (c)");
+    __asm__("ld bc, #0xf782");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ret");
+}
+
 static void setup_system_amstrad_cpc(void) {
     __asm__("ld bc, #0xbc0c");
     __asm__("out (c), c");
