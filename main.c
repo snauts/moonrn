@@ -33,6 +33,7 @@ struct Level {
 static volatile byte vblank;
 static volatile byte space_up;
 static volatile byte ticker;
+static volatile byte use_joy;
 static byte *map_y[192];
 static void *tmp;
 
@@ -106,6 +107,21 @@ static void interrupt(void) __naked {
     __asm__("ld a, #0x7f");
     __asm__("in a, (#0xfe)");
     __asm__("and #1");
+    __asm__("ld l, a");
+
+    __asm__("ld a, (_use_joy)");
+    __asm__("and a");
+    __asm__("jp z, dont_use_joy");
+    __asm__("in a, (#0x1f)");
+    __asm__("sra a");
+    __asm__("sra a");
+    __asm__("sra a");
+    __asm__("sra a");
+    __asm__("and l");
+    __asm__("ld l, a");
+    __asm__("dont_use_joy:");
+
+    __asm__("ld a, l");
     __asm__("ld (_space_up), a");
 #endif
 
@@ -624,6 +640,7 @@ static void init_variables(void) {
     reset_variables();
     tmp = (void *) TEMP_BUF;
     run_num = (void *) &run_value;
+    if (practice_run()) use_joy = 0;
 }
 
 static void clear_player(void) {
