@@ -1207,19 +1207,8 @@ static void jump_in_boat(byte *buf) {
     delay(25);
 }
 
-static void color_boat_upderside(void) {
-#if defined(CPC)
-    byte *buf = (void *) boat;
-    buf += sizeof(boat) - 6;
-    for (byte i = 0; i < 6; i++) {
-	*buf++ &= 0x0f;
-    }
-#endif
-}
-
 static void animate_finish(void) {
     free = tmp;
-    color_boat_upderside();
     byte *jumper = generate_jumper();
     byte *laiva = generate_one(boat, 3, 8);
     wave_sprite[0] = generate_one(waver, 1, 8);
