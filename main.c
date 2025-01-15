@@ -38,9 +38,8 @@ static void *tmp;
 
 void reset(void);
 
-#define SPACE_DOWN()	!space_up
-
 #if defined(ZXS)
+#define SPACE_DOWN()	!space_up
 #define SETUP_STACK()	__asm__("ld sp, #0xfdfc")
 #define FONT_PTR	((byte *) 0x3c00)
 #define IRQ_BASE	0xfe00
@@ -51,6 +50,7 @@ void reset(void);
 #endif
 
 #if defined(CPC)
+#define SPACE_DOWN()	(space_up != 0xb0)
 #define SETUP_STACK()	__asm__("ld sp, #0x95fc")
 #define FONT_PTR	(((byte *) &font_rom) - 0x100)
 #define IRQ_BASE	0x9600
@@ -113,6 +113,12 @@ static void interrupt(void) __naked {
     __asm__("ld a, #5");
     __asm__("call _cpc_key");
     __asm__("and #0x80");
+    __asm__("ld l, a");
+
+    __asm__("ld a, #9");
+    __asm__("call _cpc_key");
+    __asm__("and #0x30");
+    __asm__("or l");
     __asm__("ld (_space_up), a");
 #endif
 
