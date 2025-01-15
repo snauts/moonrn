@@ -575,14 +575,13 @@ static byte read_j(void) {
 }
 #endif
 
-static byte select_joystick(byte jk) {
+static void select_joystick(byte a) {
 #if defined(ZXS)
-    byte j_state = read_j();
-    if (!jk && j_state) use_joy = !use_joy;
-    memset((void *) 0x5aeb, use_joy ? 1 : 0, 3);
-    jk = j_state;
+    __asm__("in a, (#0x1f)");
+    if ((a & 0x10) == 0) use_joy = 1;
+#else
+    a;
 #endif
-    return jk;
 }
 
 static void show_title(void) {
@@ -595,11 +594,7 @@ static void show_title(void) {
     display_image(&credits, 0, 23);
     display_image(&title, 0, 1);
 
-#if defined(ZXS)
-    display_image(&joystick, 10, 22);
-#endif
-
-    byte jk = 0;
+    use_joy = 0;
     byte roll = 0;
     while (!SPACE_DOWN()) {
 	wait_vblank();
@@ -607,7 +602,7 @@ static void show_title(void) {
 	lit_line(roll - 32, 0x01);
 	lit_line(roll - 16, 0x41);
 	roll = (roll + 1) & 0x3f;
-	jk = select_joystick(jk);
+	select_joystick(0);
     }
 }
 
@@ -669,7 +664,6 @@ static void init_variables(void) {
     reset_variables();
     tmp = (void *) TEMP_BUF;
     run_num = (void *) &run_value;
-    if (practice_run()) use_joy = 0;
 }
 
 static void clear_player(void) {
