@@ -50,7 +50,7 @@ void reset(void);
 #endif
 
 #if defined(CPC)
-#define SPACE_DOWN()	(space_up != 0xb0)
+#define SPACE_DOWN()	(space_up != 0x90)
 #define SETUP_STACK()	__asm__("ld sp, #0x95fc")
 #define FONT_PTR	(((byte *) &font_rom) - 0x100)
 #define IRQ_BASE	0x9600
@@ -117,8 +117,9 @@ static void interrupt(void) __naked {
 
     __asm__("ld a, #9");
     __asm__("call _cpc_key");
-    __asm__("and #0x30");
+    __asm__("and #0x10");
     __asm__("or l");
+
     __asm__("ld (_space_up), a");
 #endif
 
