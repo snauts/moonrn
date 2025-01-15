@@ -112,7 +112,9 @@ static void interrupt(void) __naked {
     __asm__("ld a, (_use_joy)");
     __asm__("and a");
     __asm__("jp z, dont_use_joy");
+    __asm__("ld a, #0x00");
     __asm__("in a, (#0x1f)");
+    __asm__("xor #0xff");
     __asm__("sra a");
     __asm__("sra a");
     __asm__("sra a");
