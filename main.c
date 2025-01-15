@@ -1147,14 +1147,15 @@ static void draw_boat(byte *buf, byte x) {
 }
 
 #define SPLASH_WIDTH ((3 << BPP_SHIFT) + 1)
-static void splashing(byte *buf, byte dir) {
+static void splashing(byte *buf, byte dir, byte rev) {
     byte y = 64;
     for (byte i = 0; i < (8 >> BPP_SHIFT); i++) {
 	byte *addr = ((byte **) buf)[i];
 	addr = addr + sizeof(boat) + 8 - SPLASH_WIDTH;
 	for (byte x = 0; x < SPLASH_WIDTH; x++) {
 	    byte value = *addr;
-	    for (byte j = 0; j < i; j++) {
+	    byte n = rev ? 8 - i : i;
+	    for (byte j = 0; j < n; j++) {
 		value = dir ? rlc(value) : rrc(value);
 	    }
 	    *addr++ = value;
@@ -1164,7 +1165,7 @@ static void splashing(byte *buf, byte dir) {
 
 static void boat_arrives(byte *buf) {
     byte x = 232;
-    splashing(buf, 1);
+    splashing(buf, 1, 0);
     while (x > 88) {
 	draw_boat(buf, x);
 	wait_vblank();
@@ -1195,8 +1196,8 @@ static void animate_wave_sprite(void) {
 
 static void boat_leaves(byte *buf) {
     byte x = 88;
-    splashing(buf, 0);
-    splashing(buf, 0);
+    splashing(buf, 0, 0);
+    splashing(buf, 0, 1);
     while (x < 232) {
 	wait_vblank();
 	wait_vblank();
