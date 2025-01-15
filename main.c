@@ -478,7 +478,7 @@ static const char * const intro[] = {
 static void lit_line(byte offset, byte color) {
 #if defined(ZXS)
     word addr = 0x5900;
-    for (byte i = 0; i < 16; i++) {
+    for (byte i = 0; i < 14; i++) {
 	if (offset < 0x20) {
 	    BYTE(addr + offset) = color;
 	}
@@ -564,6 +564,27 @@ static void print_start_message(void) {
     center_msg(tmp, 168);
 }
 
+#if defined(ZXS)
+static byte in_key(byte a) {
+    __asm__("in a, (#0xfe)");
+    return a;
+}
+
+static byte read_j(void) {
+    return ~in_key(0xbf) & 0x08;
+}
+#endif
+
+static byte select_joystick(byte jk) {
+#if defined(ZXS)
+    byte j_state = read_j();
+    if (!jk && j_state) use_joy = !use_joy;
+    memset((void *) 0x5aeb, use_joy ? 1 : 0, 3);
+    jk = j_state;
+#endif
+    return jk;
+}
+
 static void show_title(void) {
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
@@ -574,6 +595,11 @@ static void show_title(void) {
     display_image(&credits, 0, 23);
     display_image(&title, 0, 1);
 
+#if defined(ZXS)
+    display_image(&joystick, 10, 22);
+#endif
+
+    byte jk = 0;
     byte roll = 0;
     while (!SPACE_DOWN()) {
 	wait_vblank();
@@ -581,6 +607,7 @@ static void show_title(void) {
 	lit_line(roll - 32, 0x01);
 	lit_line(roll - 16, 0x41);
 	roll = (roll + 1) & 0x3f;
+	jk = select_joystick(jk);
     }
 }
 
