@@ -1132,6 +1132,7 @@ static void game_done(void) {
 }
 
 static void outro_dimming(void) {
+#if defined(ZXS)
     byte *ptr = (byte *) 0x5920 - 3;
     memset((byte *) 0x5a20, 7, 64);
     memset((byte *) 0x5a60, 1, 32);
@@ -1140,6 +1141,7 @@ static void outro_dimming(void) {
 	ptr += 0x20;
     }
     wait_vblank();
+#endif
 }
 
 static void draw_boat(byte *buf, byte x) {
