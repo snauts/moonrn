@@ -234,7 +234,7 @@ static unsigned char consume_pixels(unsigned char *buf, unsigned char on) {
     unsigned char ret = 0;
     for (int i = 0; i < 8; i++) {
 	ret = ret << 1;
-	ret |= (buf[i] == on) ? 1 : 0;
+	ret |= (buf[i] == on || (buf[i] != 0 && option == 'p')) ? 1 : 0;
     }
     return ret;
 }
