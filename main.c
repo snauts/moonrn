@@ -1117,10 +1117,10 @@ static byte level_done(void) {
 }
 
 static void level_message(const char *msg) {
-    for (byte y = 32; y < 40; y++) {
+    for (byte y = 24; y < 32; y++) {
 	memset(map_y[y] + (0x13 << BPP_SHIFT), 0, 10 << BPP_SHIFT);
     }
-    put_str(msg, 152 + str_offset(msg, 40), 32);
+    put_str(msg, 152 + str_offset(msg, 40), 24);
 }
 
 static void twinkle_init_ptr(byte y) {
@@ -1540,10 +1540,22 @@ static void lose_cleanup(void) {
     }
 }
 
+static void put_bonus(byte offset, byte x) {
+    byte *addr = bonus + offset;
+    for (byte y = 32; y < 40; y++) {
+	byte *ptr = map_y[y] + x;
+	*ptr = *addr++;
+    }
+#if defined(ZXS)
+    BYTE(0x5880 + x) = 6;
+#endif
+}
+
 static void no_lives(void) {
     lives = 0;
     for (byte x = 0; x < 6; x++) {
 	erase_player(26 - x, 44);
+	if (bonus_run()) put_bonus(0, 21 + x);
 	sound_fx((x + 8) << 4, 0);
 	delay(3);
     }
