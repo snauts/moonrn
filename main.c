@@ -877,8 +877,10 @@ static void draw_twinkle(void) {
 		*twinkle_ptr = NULL;
 		twinkle_sound();
 	    }
-	    *ptr ^= twinkle_mask;
-	    twinkle_ptr[2] = ptr;
+	    else {
+		*ptr ^= twinkle_mask;
+		twinkle_ptr[2] = ptr;
+	    }
 	}
     }
 }
