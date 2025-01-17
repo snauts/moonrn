@@ -1129,7 +1129,7 @@ static void move_level(void) {
 }
 
 static byte level_done(void) {
-    return scroll > level_length;
+    return scroll >= level_length;
 }
 
 static void level_message(const char *msg) {
@@ -1473,6 +1473,7 @@ static void reset_player_sprite(void) {
 
 static void advance_level(void) {
     stop_player();
+    draw_pond_waves();
     fade_period = 500;
     fade_level(fade_out);
     change_level();
