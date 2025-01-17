@@ -1117,10 +1117,11 @@ static byte level_done(void) {
 }
 
 static void level_message(const char *msg) {
-    for (byte y = 24; y < 32; y++) {
+    byte top = bonus_run() ? 24 : 32;
+    for (byte y = top; y < top + 8; y++) {
 	memset(map_y[y] + (0x13 << BPP_SHIFT), 0, 10 << BPP_SHIFT);
     }
-    put_str(msg, 152 + str_offset(msg, 40), 24);
+    put_str(msg, 152 + str_offset(msg, 40), top);
 }
 
 static void twinkle_init_ptr(byte y) {
