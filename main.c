@@ -24,7 +24,7 @@ struct Level {
 
 struct Twinkle {
     const byte *level;
-    byte offset;
+    word offset;
     byte height;
 };
 
@@ -669,9 +669,10 @@ static const struct Level level_list[] = {
 };
 
 static const struct Twinkle twinkle_map[] = {
-    { levelB, 68, 112 },
-    { levelP, 56, 152 },
-    { levelM, 24, 164 },
+    { levelB, 68,  112 },
+    { levelP, 56,  152 },
+    { levelM, 24,  164 },
+    { levelC, 356, 152 },
     { NULL, NULL },
 };
 
