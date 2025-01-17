@@ -22,6 +22,12 @@ struct Level {
     byte mask;
 };
 
+struct Twinkle {
+    const byte *level;
+    byte offset;
+    byte height;
+};
+
 #include "data.h"
 
 #define NULL		((void *) 0)
@@ -542,8 +548,12 @@ static byte hard_run(void) {
     return *run_num >= 2;
 }
 
+static byte last_run(void) {
+    return *run_num >= 3;
+}
+
 static void advance_run(void) {
-    if (*run_num < 2) *run_num = *run_num + 1;
+    if (!hard_run()) *run_num = *run_num + 1;
 }
 
 static const char* start_string(void) {
@@ -628,6 +638,11 @@ static const byte *current_level;
 static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
+static byte twinkle_mask;
+static word twinkle_offset;
+static word twinkle_height;
+static byte *twinkle_ptr[3];
+
 static const struct Level level_list[] = {
     { level0, "Victoria",  512, 0x1f },
     { levelB, "Baltic",    256, 0x1f },
@@ -650,10 +665,16 @@ static const struct Level level_list[] = {
     { levelC, "Pacific",   512, 0x3f },
 };
 
+static const struct Twinkle twinkle_map[] = {
+    { levelB, 128, 128 },
+    { NULL, NULL },
+};
+
 static void reset_variables(void) {
     vel = 0;
     jump = 0;
     pos = STANDING;
+    twinkle_ptr[2] = NULL;
 }
 
 static void init_variables(void) {
@@ -803,6 +824,49 @@ static void draw_bridge(void) {
     }
 }
 
+static void clear_twinkle(void) {
+    byte *ptr = twinkle_ptr[2];
+    if (ptr != NULL) {
+	*ptr ^= twinkle_mask;
+	twinkle_ptr[2] = NULL;
+    }
+}
+
+static void sound_fx(word period, byte border);
+
+static void twinkle_sound(void) {
+    for (word p = 150; p > 50; p -= 20) sound_fx(p, 0);
+}
+
+static byte twinkle_box(byte offset) {
+    return offset == 8
+	&& (twinkle_mask & 0x7e)
+	&& pos >= (twinkle_height - 5)
+	&& pos <= (twinkle_height - 3);
+}
+
+static void draw_twinkle(void) {
+    static const byte mask[] = {
+	0x80, 0x40, 0x20, 0x10,
+	0x08, 0x04, 0x02, 0x01
+    };
+    if (*twinkle_ptr) {
+	word pos = twinkle_offset - scroll;
+	byte offset = (pos >> 3) & level_mask;
+	if (offset < 0x20) {
+	    byte index = (ticker & 4) == 0;
+	    byte *ptr = twinkle_ptr[index] + offset;
+	    twinkle_mask = mask[pos & 7];
+	    if ((*ptr & twinkle_mask) || twinkle_box(offset)) {
+		*twinkle_ptr = NULL;
+		twinkle_sound();
+	    }
+	    *ptr ^= twinkle_mask;
+	    twinkle_ptr[2] = ptr;
+	}
+    }
+}
+
 static void animate_wave(void) {
     frame = waver + (ticker & 16 ? PLAYER : 0);
 }
@@ -815,7 +879,9 @@ static void wave_before_start(void) {
     while (on_bridge() && !SPACE_DOWN()) {
 	animate_wave();
 	draw_player();
+	draw_twinkle();
 	wait_vblank();
+	clear_twinkle();
 	clear_player();
     }
 }
@@ -861,6 +927,8 @@ static void drown_player(void) {
     frame = drowner;
     erase_player(8, pos);
     while (frame < drowner + sizeof(drowner)) {
+	clear_twinkle();
+	draw_twinkle();
 	draw_player();
 	sound_fx(period, 0);
 	clear_player();
@@ -1053,6 +1121,30 @@ static void level_message(const char *msg) {
     put_str(msg, 152 + str_offset(msg, 40), 32);
 }
 
+static void twinkle_init_ptr(byte y) {
+    twinkle_height = y;
+    for (byte i = 0; i < 2; i++) {
+	twinkle_ptr[i] = map_y[y + i];
+    }
+}
+
+static void search_twinkle_map(const struct Level *ptr) {
+    const struct Twinkle *map = twinkle_map;
+    while (map->level) {
+	if (ptr->level == map->level) {
+	    twinkle_init_ptr(map->height);
+	    twinkle_offset = map->offset;
+	    break;
+	}
+	map++;
+    }
+}
+
+static void select_twinkle(const struct Level *ptr) {
+    memset(twinkle_ptr, 0, sizeof(twinkle_ptr));
+    if (last_run()) search_twinkle_map(ptr);
+}
+
 static void select_level(byte i) {
     const struct Level *ptr = level_list + i;
     current_level = ptr->level;
@@ -1060,6 +1152,7 @@ static void select_level(byte i) {
     level_mask = ptr->mask << BPP_SHIFT;
     level_mask = level_mask | 1;
     level_message(ptr->msg);
+    select_twinkle(ptr);
 }
 
 static void end_game(const char *msg, byte y) {
@@ -1345,6 +1438,7 @@ static void change_level(void) {
 static void stop_player(void) {
     ticker = 0;
     clear_player();
+    clear_twinkle();
     animate_wave();
     draw_player();
 }
@@ -1391,10 +1485,12 @@ static void game_loop(void) {
 
     while (!drown && pos < 184) {
 	/* draw */
+	clear_twinkle();
 	clear_player();
 	animate_player();
 	draw_pond_waves();
 	drown = draw_player();
+	draw_twinkle();
 
 	/* calculate */
 	move_level();
