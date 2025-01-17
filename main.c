@@ -548,7 +548,7 @@ static byte hard_run(void) {
     return *run_num >= 2;
 }
 
-static byte last_run(void) {
+static byte bonus_run(void) {
     return *run_num >= 3;
 }
 
@@ -562,8 +562,10 @@ static const char* start_string(void) {
 	return "practice";
     case 1:
 	return "participate";
-    default:
+    case 2:
 	return "accept challenge";
+    default:
+	return "assert oneself";
     }
 }
 
@@ -666,7 +668,7 @@ static const struct Level level_list[] = {
 };
 
 static const struct Twinkle twinkle_map[] = {
-    { levelB, 128, 128 },
+    { levelB, 68, 112 },
     { NULL, NULL },
 };
 
@@ -1142,7 +1144,7 @@ static void search_twinkle_map(const struct Level *ptr) {
 
 static void select_twinkle(const struct Level *ptr) {
     memset(twinkle_ptr, 0, sizeof(twinkle_ptr));
-    if (last_run()) search_twinkle_map(ptr);
+    if (bonus_run()) search_twinkle_map(ptr);
 }
 
 static void select_level(byte i) {
@@ -1212,6 +1214,8 @@ static void game_done(void) {
     }
     if (hard_run()) {
 	display_image(&deed, 2, 16);
+    }
+    if (bonus_run()) {
 	center_msg("THE END", 152) ;
     }
     display_image(&title, 0, 1);
