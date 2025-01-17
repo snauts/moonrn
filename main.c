@@ -671,6 +671,7 @@ static const struct Level level_list[] = {
 static const struct Twinkle twinkle_map[] = {
     { levelB, 68, 112 },
     { levelP, 56, 152 },
+    { levelM, 24, 164 },
     { NULL, NULL },
 };
 
