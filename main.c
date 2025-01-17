@@ -640,6 +640,7 @@ static const byte *current_level;
 static byte wave_data[MAX_WAVES];
 static byte *wave_addr[MAX_WAVES];
 
+static byte twinkle_num;
 static byte twinkle_mask;
 static word twinkle_offset;
 static word twinkle_height;
@@ -669,6 +670,7 @@ static const struct Level level_list[] = {
 
 static const struct Twinkle twinkle_map[] = {
     { levelB, 68, 112 },
+    { levelP, 56, 152 },
     { NULL, NULL },
 };
 
@@ -847,6 +849,17 @@ static byte twinkle_box(byte offset) {
 	&& pos <= (twinkle_height - 3);
 }
 
+static void put_bonus(byte offset, byte x) {
+    const byte *addr = bonus + offset;
+    for (byte y = 32; y < 40; y++) {
+	byte *ptr = map_y[y] + x;
+	*ptr = *addr++;
+    }
+#if defined(ZXS)
+    BYTE(0x5880 + x) = 6;
+#endif
+}
+
 static void draw_twinkle(void) {
     static const byte mask[] = {
 	0x80, 0x40, 0x20, 0x10,
@@ -860,6 +873,7 @@ static void draw_twinkle(void) {
 	    byte *ptr = twinkle_ptr[index] + offset;
 	    twinkle_mask = mask[pos & 7];
 	    if ((*ptr & twinkle_mask) || twinkle_box(offset)) {
+		put_bonus(PLAYER, 21 + twinkle_num);
 		*twinkle_ptr = NULL;
 		twinkle_sound();
 	    }
@@ -1133,12 +1147,15 @@ static void twinkle_init_ptr(byte y) {
 
 static void search_twinkle_map(const struct Level *ptr) {
     const struct Twinkle *map = twinkle_map;
+
+    twinkle_num = 0;
     while (map->level) {
 	if (ptr->level == map->level) {
 	    twinkle_init_ptr(map->height);
 	    twinkle_offset = map->offset;
 	    break;
 	}
+	twinkle_num++;
 	map++;
     }
 }
@@ -1539,17 +1556,6 @@ static void lose_cleanup(void) {
     if (lives >= 0 && !practice_run()) {
 	erase_player(21 + lives, 44);
     }
-}
-
-static void put_bonus(byte offset, byte x) {
-    byte *addr = bonus + offset;
-    for (byte y = 32; y < 40; y++) {
-	byte *ptr = map_y[y] + x;
-	*ptr = *addr++;
-    }
-#if defined(ZXS)
-    BYTE(0x5880 + x) = 6;
-#endif
 }
 
 static void no_lives(void) {
