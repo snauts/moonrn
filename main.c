@@ -862,7 +862,7 @@ static void twinkle_sound(void) {
 static byte twinkle_box(byte offset) {
     return TEST_TWINKLE_OFFSET(offset)
 	&& pos >= (twinkle_height - 5)
-	&& pos <= (twinkle_height - 2);
+	&& pos <= (twinkle_height - 1);
 }
 
 static void put_bonus(byte offset, byte x, word y) {
