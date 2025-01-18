@@ -853,14 +853,15 @@ static byte twinkle_box(byte offset) {
 	&& pos <= (twinkle_height - 3);
 }
 
-static void put_bonus(byte offset, byte x) {
+static void put_bonus(byte offset, byte x, word y) {
+    byte h = y << 3;
     const byte *addr = bonus + offset;
-    for (byte y = 32; y < 40; y++) {
-	byte *ptr = map_y[y] + x;
+    for (byte i = h; i < h + 8; i++) {
+	byte *ptr = map_y[i] + x;
 	*ptr = *addr++;
     }
 #if defined(ZXS)
-    BYTE(0x5880 + x) = 6;
+    BYTE(0x5800 + (y << 5) + x) = 6;
 #endif
 }
 
@@ -877,7 +878,7 @@ static void draw_twinkle(void) {
 	    byte *ptr = twinkle_ptr[index] + offset;
 	    twinkle_mask = mask[pos & 7];
 	    if ((*ptr & twinkle_mask) || twinkle_box(offset)) {
-		put_bonus(PLAYER, 21 + twinkle_num);
+		put_bonus(PLAYER, 21 + twinkle_num, 4);
 		*twinkle_ptr = NULL;
 		twinkle_sound();
 	    }
@@ -1225,6 +1226,17 @@ static const char *done_message(void) {
     }
 }
 
+static void report_twinkles(void) {
+    byte mask = 0x20;
+    for (byte i = 0; i < 6; i++) {
+	put_bonus(twinkle_num & mask ? PLAYER : 0, i + 13, 20);
+	mask = mask >> 1;
+    }
+    if (twinkle_num == 0x3f) {
+	center_msg("THE END", 148);
+    }
+}
+
 static void game_done(void) {
     char *ptr = tmp;
     ptr = strcpy(ptr, done_message());
@@ -1240,7 +1252,7 @@ static void game_done(void) {
 	display_image(&deed, 2, 16);
     }
     if (bonus_run()) {
-	center_msg("THE END", 152) ;
+	report_twinkles();
     }
     display_image(&title, 0, 1);
 
@@ -1450,6 +1462,18 @@ static void fade_empty_level(void) {
     }
 }
 
+static void count_twinkles(void) {
+    twinkle_num = 0;
+    byte *addr = map_y[36] + 21;
+    for (byte i = 0; i < 6; i++) {
+	twinkle_num = twinkle_num << 1;
+	if (*addr == 0x7d) {
+	    twinkle_num |= 1;
+	}
+	addr += (1 << BPP_SHIFT);
+    }
+}
+
 static void change_level(void) {
     level++;
     if (level < SIZE(level_list)) {
@@ -1459,6 +1483,7 @@ static void change_level(void) {
 	stop_music();
 	fade_empty_level();
 	animate_victory();
+	count_twinkles();
 	game_done();
     }
 }
@@ -1569,7 +1594,7 @@ static void no_lives(void) {
     lives = 0;
     for (byte x = 0; x < 6; x++) {
 	erase_player(26 - x, 44);
-	if (bonus_run()) put_bonus(0, 21 + x);
+	if (bonus_run()) put_bonus(0, 21 + x, 4);
 	sound_fx((x + 8) << 4, 0);
 	delay(3);
     }
