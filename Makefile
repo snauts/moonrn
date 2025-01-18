@@ -58,7 +58,7 @@ dsk:
 	iDSK moonrn.dsk -f -t 1 -c 1000 -e $(shell $(ENTRY)) -i moonrn.bin
 
 cpc:
-	CODE=0x1000 DATA=0x8800	TYPE=-DCPC make prg
+	CODE=0x1000 DATA=0x8A00	TYPE=-DCPC make prg
 	@make dsk
 
 fuse: zxs
