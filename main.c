@@ -855,9 +855,13 @@ static byte twinkle_box(byte offset) {
 
 static void put_bonus(byte offset, byte x, word y) {
     byte h = y << 3;
+    x = x << BPP_SHIFT;
     const byte *addr = bonus + offset;
     for (byte i = h; i < h + 8; i++) {
 	byte *ptr = map_y[i] + x;
+#if defined(CPC)
+	*ptr++ = *addr++;
+#endif
 	*ptr = *addr++;
     }
 #if defined(ZXS)
