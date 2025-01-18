@@ -1206,11 +1206,43 @@ static void end_game(const char *msg, byte y) {
 #endif
 }
 
+static const char *years_third_run(void) {
+    switch (twinkle_num) {
+    case 0x00:
+	return "five";
+    case 0x3f:
+	return "nine";
+    default:
+	return "seven";
+    }
+}
+
+static const char *years(void) {
+    switch (*run_num) {
+    case 1:
+	return "three";
+    case 2:
+	return "five";
+    case 3:
+	return years_third_run();
+    default:
+	return "some";
+    }
+}
+
+static const char *last_str(void) {
+    return concat(years(), " years. A big celebration is in order.");
+}
+
+static const char *get_str(const char *ptr) {
+    return ptr == (void *) &last_str ? last_str() : ptr;
+}
+
 static const char * const outro[] = {
     " As you skip over the last patch of moonlight,",
     "the crowd cheers especially loud. After all,",
     "no one has completed this challenge in the past",
-    "three years. A big celebration is in order.",
+    (void *) &last_str,
     NULL,
 };
 
@@ -1226,8 +1258,9 @@ static void show_outro_text(void) {
     const char * const *text;
     text = practice_run() ? p_done : outro;
     while (*text) {
-	put_str(*text++, 4, y);
+	put_str(get_str(*text), 4, y);
 	y = y + 8;
+	text++;
     }
 }
 
@@ -1249,6 +1282,7 @@ static void report_twinkles(void) {
 	mask = mask >> 1;
     }
     if (twinkle_num == 0x3f) {
+	center_msg("You are the best!", 122);
 	center_msg("THE END", 148);
     }
 }
