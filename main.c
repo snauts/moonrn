@@ -846,9 +846,21 @@ static void twinkle_sound(void) {
     for (word p = 150; p > 50; p -= 20) sound_fx(p, 0);
 }
 
+#if defined(ZXS)
+#define TEST_TWINKLE_OFFSET(offset) \
+    (offset == PLAYER && (twinkle_mask & 0x7e))
+
+#elif defined(CPC)
+#define TEST_TWINKLE_OFFSET_1(offset) \
+    (offset == PLAYER && (twinkle_mask & 0x77))
+#define TEST_TWINKLE_OFFSET_2(offset) \
+    (offset == PLAYER + 1 && (twinkle_mask & 0xee))
+#define TEST_TWINKLE_OFFSET(offset) \
+    (TEST_TWINKLE_OFFSET_1(offset) || TEST_TWINKLE_OFFSET_2(offset))
+#endif
+
 static byte twinkle_box(byte offset) {
-    return offset == 8
-	&& (twinkle_mask & 0x7e)
+    return TEST_TWINKLE_OFFSET(offset)
 	&& pos >= (twinkle_height - 5)
 	&& pos <= (twinkle_height - 3);
 }
