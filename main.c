@@ -870,17 +870,24 @@ static void put_bonus(byte offset, byte x, word y) {
 }
 
 static void draw_twinkle(void) {
+#if defined(ZXS)
     static const byte mask[] = {
 	0x80, 0x40, 0x20, 0x10,
 	0x08, 0x04, 0x02, 0x01
     };
+#endif
+#if defined(CPC)
+    static const byte mask[] = {
+	0x88, 0x44, 0x22, 0x11,
+    };
+#endif
     if (*twinkle_ptr) {
 	word pos = twinkle_offset - scroll;
-	byte offset = (pos >> 3) & level_mask;
-	if (offset < 0x20) {
+	byte offset = (pos >> (3 - BPP_SHIFT)) & level_mask;
+	if (offset < WIDTH)  {
 	    byte index = (ticker & 4) == 0;
 	    byte *ptr = twinkle_ptr[index] + offset;
-	    twinkle_mask = mask[pos & 7];
+	    twinkle_mask = mask[pos & (7 >> BPP_SHIFT)];
 	    if ((*ptr & twinkle_mask) || twinkle_box(offset)) {
 		put_bonus(PLAYER, 21 + twinkle_num, 4);
 		*twinkle_ptr = NULL;
