@@ -533,6 +533,13 @@ static char *strcpy(char *dst, const char *src) {
     return dst;
 }
 
+static char *concat(const char *str1, const char *str2) {
+    char *ptr = tmp;
+    ptr = strcpy(ptr, str1);
+    ptr = strcpy(ptr, str2);
+    return tmp;
+}
+
 static void center_msg(const char *msg, byte y) {
     put_str(msg, str_offset(msg, 128), y);
 }
@@ -570,10 +577,7 @@ static const char* start_string(void) {
 }
 
 static void print_start_message(void) {
-    char *ptr = tmp;
-    ptr = strcpy(ptr, "Press SPACE to ");
-    ptr = strcpy(ptr, start_string());
-    center_msg(tmp, 168);
+    center_msg(concat("Press SPACE to ", start_string()), 168);
 }
 
 static void select_joystick(byte a) {
@@ -1250,11 +1254,7 @@ static void report_twinkles(void) {
 }
 
 static void game_done(void) {
-    char *ptr = tmp;
-    ptr = strcpy(ptr, done_message());
-    ptr = strcpy(ptr, " COMPLETE");
-
-    end_game(tmp, 72);
+    end_game(concat(done_message(), " COMPLETE"), 72);
 
     show_outro_text();
     if (!practice_run()) {
