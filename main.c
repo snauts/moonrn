@@ -576,17 +576,6 @@ static void print_start_message(void) {
     center_msg(tmp, 168);
 }
 
-#if defined(ZXS)
-static byte in_key(byte a) {
-    __asm__("in a, (#0xfe)");
-    return a;
-}
-
-static byte read_j(void) {
-    return ~in_key(0xbf) & 0x08;
-}
-#endif
-
 static void select_joystick(byte a) {
 #if defined(ZXS)
     __asm__("in a, (#0x1f)");
