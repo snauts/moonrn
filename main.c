@@ -1546,12 +1546,12 @@ static byte next_level(void) {
 static void game_loop(void) {
     byte drown = 0;
     fade_period = 0;
-    reset_variables();
     draw_bridge();
 
   restart:
     scroll = 0;
     *wave_addr = 0;
+    reset_variables();
     fade_level(fade_in);
     erase_player(8, pos);
     wave_before_start();
