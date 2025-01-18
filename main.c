@@ -1468,10 +1468,10 @@ static void fade_empty_level(void) {
 
 static void count_twinkles(void) {
     twinkle_num = 0;
-    byte *addr = map_y[36] + 21;
+    byte *addr = map_y[36] + (21 << BPP_SHIFT);
     for (byte i = 0; i < 6; i++) {
 	twinkle_num = twinkle_num << 1;
-	if (*addr == 0x7d) {
+	if ((*addr & 0xf0) == 0x70) {
 	    twinkle_num |= 1;
 	}
 	addr += (1 << BPP_SHIFT);
