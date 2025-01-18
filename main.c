@@ -1282,7 +1282,7 @@ static void report_twinkles(void) {
 	mask = mask >> 1;
     }
     if (twinkle_num == 0x3f) {
-	center_msg("You are the best!", 122);
+	center_msg("You are the best!", 120);
 	center_msg("THE END", 148);
     }
 }
