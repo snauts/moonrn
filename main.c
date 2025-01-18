@@ -882,7 +882,7 @@ static void draw_twinkle(void) {
     };
 #endif
     if (*twinkle_ptr) {
-	word pos = twinkle_offset - scroll;
+	word pos = twinkle_offset - scroll >> BPP_SHIFT;
 	byte offset = (pos >> (3 - BPP_SHIFT)) & level_mask;
 	if (offset < WIDTH)  {
 	    byte index = (ticker & 4) == 0;
@@ -1170,7 +1170,7 @@ static void search_twinkle_map(const struct Level *ptr) {
     while (map->level) {
 	if (ptr->level == map->level) {
 	    twinkle_init_ptr(map->height);
-	    twinkle_offset = map->offset;
+	    twinkle_offset = map->offset << BPP_SHIFT;
 	    break;
 	}
 	twinkle_num++;
