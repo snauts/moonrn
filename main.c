@@ -673,7 +673,7 @@ static const struct Twinkle twinkle_map[] = {
     { levelP, 56,  152 },
     { levelM, 24,  164 },
     { levelS, 132, 80  },
-    { levelL, 270, 154 },
+    { levelL, 264, 154 },
     { levelC, 356, 152 },
     { NULL, NULL },
 };
