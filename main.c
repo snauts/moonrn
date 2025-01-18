@@ -553,7 +553,7 @@ static byte bonus_run(void) {
 }
 
 static void advance_run(void) {
-    if (!hard_run()) *run_num = *run_num + 1;
+    if (!bonus_run()) *run_num = *run_num + 1;
 }
 
 static const char* start_string(void) {
