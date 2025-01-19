@@ -566,7 +566,7 @@ static void advance_run(void) {
 static const char* start_string(void) {
     switch (*run_num) {
     case 0:
-	return "practice";
+	return "warm-up";
     case 1:
 	return "participate";
     case 2:
@@ -1267,7 +1267,7 @@ static void show_outro_text(void) {
 static const char *done_message(void) {
     switch (*run_num) {
     case 0:
-	return "PRACTICE";
+	return "WARM-UP";
     case 1:
 	return "GAME";
     default:
