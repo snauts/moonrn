@@ -1269,7 +1269,7 @@ static const char *done_message(void) {
     case 0:
 	return "WARM-UP";
     case 1:
-	return "GAME";
+	return "COMPETITION";
     default:
 	return "CHALLENGE";
     }
