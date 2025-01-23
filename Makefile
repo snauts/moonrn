@@ -62,7 +62,7 @@ cpc:
 	@make dsk
 
 fuse: zxs
-	fuse --machine 128 --no-confirm-actions -g 2x moonrn.tap
+	fuse --machine 128 --no-confirm-actions moonrn.tap
 
 clean:
 	rm -f moonrn* pcx-dump data.h
