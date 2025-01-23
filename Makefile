@@ -3,7 +3,7 @@ ARCH ?= -mz80
 CFLAGS += --nostdinc --nostdlib --no-std-crt0
 CFLAGS += --code-loc $(CODE) --data-loc $(DATA)
 
-ENTRY = grep _reset moonrn.map | cut -d " " -f 6
+ENTRY = grep _start_up moonrn.map | cut -d " " -f 6
 
 all:
 	@echo "make zxs" - build .tap for ZX Spectrum

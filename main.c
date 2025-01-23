@@ -548,32 +548,32 @@ static void center_msg(const char *msg, byte y) {
     put_str(msg, str_offset(msg, 128), y);
 }
 
-static byte *run_num;
-static const byte run_value = 0;
-static byte *max_run;
-static const byte max_value = 1;
+static byte run_num;
+static byte max_run;
 
 static byte practice_run(void) {
-    return *run_num == 0;
+    return run_num == 0;
 }
 
 static byte hard_run(void) {
-    return *run_num >= 2;
+    return run_num >= 2;
 }
 
 static byte bonus_run(void) {
-    return *run_num >= 3;
+    return run_num >= 3;
 }
 
 static void advance_run(void) {
     if (!bonus_run()) {
-	if (*run_num == *max_run) *max_run++;
-	*run_num = *run_num + 1;
+	if (run_num == max_run) {
+	    max_run++;
+	}
+	run_num++;
     }
 }
 
 static const char* start_string(void) {
-    switch (*run_num) {
+    switch (run_num) {
     case 0:
 	return "warm-up";
     case 1:
@@ -695,8 +695,6 @@ static void init_variables(void) {
     frame = runner;
     reset_variables();
     tmp = (void *) TEMP_BUF;
-    run_num = (void *) &run_value;
-    max_run = (void *) &max_value;
 }
 
 static void clear_player(void) {
@@ -1229,7 +1227,7 @@ static const char *years_third_run(void) {
 }
 
 static const char *years(void) {
-    switch (*run_num) {
+    switch (run_num) {
     case 1:
 	return "three";
     case 2:
@@ -1276,7 +1274,7 @@ static void show_outro_text(void) {
 }
 
 static const char *done_message(void) {
-    switch (*run_num) {
+    switch (run_num) {
     case 0:
 	return "WARM-UP";
     case 1:
@@ -1674,6 +1672,15 @@ static void top_level(void) {
 
     stop_music();
     game_over();
+}
+
+void start_up(void) __naked {
+    __asm__("di");
+    __asm__("ld a, #0");
+    __asm__("ld (_run_num), a");
+    __asm__("ld a, #1");
+    __asm__("ld (_max_run), a");
+    __asm__("jp _reset");
 }
 
 void reset(void) {
