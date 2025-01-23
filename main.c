@@ -586,7 +586,9 @@ static const char* start_string(void) {
 }
 
 static void print_start_message(void) {
-    for (byte y = 168; y < 168 + 8; y++) memset(map_y[y], 0, 32 << BPP_SHIFT);
+    for (byte y = 168; y < 168 + 8; y++) {
+	memset(map_y[y] + (4 << BPP_SHIFT), 0, 24 << BPP_SHIFT);
+    }
     center_msg(concat("Press SPACE to ", start_string()), 168);
 }
 
@@ -599,6 +601,7 @@ static void select_joystick(byte a) {
 #endif
 }
 
+static byte select_clear[2 << BPP_SHIFT];
 static void show_select_menu(void) {
     for (byte i = 0; i < 4; i++) {
 	byte x = 12 + (i << 1);
@@ -610,8 +613,21 @@ static void show_select_menu(void) {
 	    display_part_image(&select, x, 23, 1);
 	}
 	if (i == run_num) {
+	    byte *addr = map_y[191] + (x << BPP_SHIFT);
+	    memcpy(select_clear, addr, sizeof(select_clear));
 	    put_char('_', (x << 3) + 3, 184);
 	}
+    }
+}
+
+static void select_run(byte on) {
+    byte x = 12 + (run_num << 1);
+    if (on) {
+	put_char('_', (x << 3) + 3, 184);
+    }
+    else {
+	byte *addr = map_y[191] + (x << BPP_SHIFT);
+	memcpy(addr, select_clear, sizeof(select_clear));
     }
 }
 
@@ -643,8 +659,9 @@ static byte get_num_key(void) {
 static void select_menu_item(void) {
     byte key = get_num_key();
     if (key != run_num && key <= max_run) {
+	select_run(0);
 	run_num = key;
-	show_select_menu();
+	select_run(1);
 	print_start_message();
     }
 }
