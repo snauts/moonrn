@@ -3,6 +3,7 @@ static word mul80(word x) {
 }
 
 static byte cpc_psg(byte reg, byte val) __naked {
+    __asm__("di");
     __asm__("ld b, #0xf4");
     __asm__("ld c, a"); reg;
     __asm__("out (c), c");
@@ -17,6 +18,7 @@ static byte cpc_psg(byte reg, byte val) __naked {
     __asm__("out (c), c");
     __asm__("ld bc, #0xf600");
     __asm__("out (c), c");
+    __asm__("ei");
     __asm__("ret");
 }
 
