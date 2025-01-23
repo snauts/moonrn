@@ -599,6 +599,24 @@ static void select_joystick(byte a) {
 #endif
 }
 
+static void show_select_menu(void) {
+    for (byte i = 0; i < 4; i++) {
+	byte x = 12 + (i << 1);
+	if (i <= max_run) {
+	    display_part_image(&select, x, 22, 2);
+	    put_char('0' + i, (x << 3) + 3, 183);
+	}
+	else {
+	    display_part_image(&select, x, 23, 1);
+	}
+	if (i == run_num) {
+	    byte *addr = map_y[191] + x;
+	    *addr++ |= 0x3f;
+	    *addr++ |= 0xf0;
+	}
+    }
+}
+
 static void show_title(void) {
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 20, 80 + (i << 3));
@@ -608,6 +626,7 @@ static void show_title(void) {
     display_image(&hazard, 24, 23);
     display_image(&credits, 0, 23);
     display_image(&title, 0, 1);
+    show_select_menu();
 
     use_joy = 0;
     byte roll = 0;
