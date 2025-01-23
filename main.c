@@ -628,18 +628,15 @@ static byte in_key(byte a) {
 
 static byte get_num_key(void) {
 #if defined(ZXS)
-    byte ef = in_key(0xef);
-    byte f7 = in_key(0xf7);
-    if ((ef & 1) == 0) return 0;
-    if ((f7 & 1) == 0) return 1;
-    if ((f7 & 2) == 0) return 2;
-    if ((f7 & 4) == 0) return 3;
+    static const byte port[] = { 0xef, 0xf7, 0xf7, 0xf7 };
+    static const byte mask[] = { 0x01, 0x01, 0x02, 0x04 };
 #elif defined(CPC)
-    if ((in_key(4) & 1) == 0) return 0;
-    if ((in_key(8) & 1) == 0) return 1;
-    if ((in_key(8) & 2) == 0) return 2;
-    if ((in_key(7) & 2) == 0) return 3;
+    static const byte port[] = { 0x04, 0x08, 0x08, 0x07 };
+    static const byte mask[] = { 0x01, 0x01, 0x02, 0x02 };
 #endif
+    for (byte i = 0; i < 4; i++) {
+	if ((in_key(port[i]) & mask[i]) == 0) return i;
+    }
     return 0xff;
 }
 
