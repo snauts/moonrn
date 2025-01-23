@@ -550,6 +550,8 @@ static void center_msg(const char *msg, byte y) {
 
 static byte *run_num;
 static const byte run_value = 0;
+static byte *max_run;
+static const byte max_value = 1;
 
 static byte practice_run(void) {
     return *run_num == 0;
@@ -564,7 +566,10 @@ static byte bonus_run(void) {
 }
 
 static void advance_run(void) {
-    if (!bonus_run()) *run_num = *run_num + 1;
+    if (!bonus_run()) {
+	if (*run_num == *max_run) *max_run++;
+	*run_num = *run_num + 1;
+    }
 }
 
 static const char* start_string(void) {
@@ -691,6 +696,7 @@ static void init_variables(void) {
     reset_variables();
     tmp = (void *) TEMP_BUF;
     run_num = (void *) &run_value;
+    max_run = (void *) &max_value;
 }
 
 static void clear_player(void) {
