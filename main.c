@@ -814,7 +814,7 @@ static void double_jump(byte space) {
 
 static void move_player(void) {
     byte space = SPACE_DOWN();
-    if (vel > 0 && contact()) {
+    if (vel >= 0 && contact()) {
 	vel = space ? VELOCITY : 0;
 	jump = 0;
     }
