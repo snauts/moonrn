@@ -17,6 +17,7 @@ pcx:
 	@./pcx-dump -c deed.pcx >> data.h
 	@./pcx-dump -c credits.pcx >> data.h
 	@./pcx-dump -c hazard.pcx >> data.h
+	@./pcx-dump -c select.pcx >> data.h
 	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h
 	@./pcx-dump -p drowner.pcx >> data.h
