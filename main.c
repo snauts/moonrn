@@ -402,12 +402,12 @@ static void uncompress(byte *dst, const byte *src, word size) {
     }
 }
 
-static void display_image(struct Image *img, byte x, byte y) {
+static void display_part_image(struct Image *img, byte x, byte y, byte n) {
     byte *ptr = tmp;
     x = x << BPP_SHIFT;
     uncompress(ptr, img->pixel, img->pixel_size);
 
-    byte bottom = (y + img->h) << 3;
+    byte bottom = (y + n) << 3;
     for (byte i = y << 3; i < bottom; i++) {
 	memcpy(map_y[i] + x, ptr, img->w);
 	ptr += img->w;
@@ -416,12 +416,16 @@ static void display_image(struct Image *img, byte x, byte y) {
 #if defined(ZXS)
     uncompress(ptr, img->color, img->color_size);
     byte *addr = (byte *) 0x5800 + (y << 5) + x;
-    for (byte i = 0; i < img->h; i++) {
+    for (byte i = 0; i < n; i++) {
 	memcpy(addr, ptr, img->w);
 	ptr += img->w;
 	addr += 0x20;
     }
 #endif
+}
+
+static void display_image(struct Image *img, byte x, byte y) {
+    display_part_image(img, x, y, img->h);
 }
 
 #define PiB (8 >> BPP_SHIFT) /* pixels in byte */
