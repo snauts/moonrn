@@ -581,6 +581,7 @@ static const char* start_string(void) {
 }
 
 static void print_start_message(void) {
+    for (byte y = 168; y < 168 + 8; y++) memset(map_y[y], 0, 32);
     center_msg(concat("Press SPACE to ", start_string()), 168);
 }
 
