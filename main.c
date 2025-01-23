@@ -610,10 +610,39 @@ static void show_select_menu(void) {
 	    display_part_image(&select, x, 23, 1);
 	}
 	if (i == run_num) {
-	    byte *addr = map_y[191] + x;
-	    *addr++ |= 0x3f;
-	    *addr++ |= 0xf0;
+	    put_char('_', (x << 3) + 3, 184);
 	}
+    }
+}
+
+static byte in_key(byte a) {
+#if defined(ZXS)
+    __asm__("in a, (#0xfe)");
+#endif
+    return a;
+}
+
+static byte get_num_key(void) {
+#if defined(ZXS)
+    if ((in_key(0xef) & 1) == 0) {
+	return 0;
+    }
+    else {
+	byte f7 = in_key(0xf7);
+	if ((f7 & 1) == 0) return 1;
+	if ((f7 & 2) == 0) return 2;
+	if ((f7 & 4) == 0) return 3;
+    }
+#endif
+    return 0xff;
+}
+
+static void select_menu_item(void) {
+    byte key = get_num_key();
+    if (key != run_num && key <= max_run) {
+	run_num = key;
+	show_select_menu();
+	print_start_message();
     }
 }
 
@@ -637,6 +666,7 @@ static void show_title(void) {
 	lit_line(roll - 16, 0x41);
 	roll = (roll + 1) & 0x3f;
 	select_joystick(0);
+	select_menu_item();
     }
 }
 
