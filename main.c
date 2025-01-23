@@ -586,7 +586,7 @@ static const char* start_string(void) {
 }
 
 static void print_start_message(void) {
-    for (byte y = 168; y < 168 + 8; y++) memset(map_y[y], 0, 32);
+    for (byte y = 168; y < 168 + 8; y++) memset(map_y[y], 0, 32 << BPP_SHIFT);
     center_msg(concat("Press SPACE to ", start_string()), 168);
 }
 
@@ -618,21 +618,27 @@ static void show_select_menu(void) {
 static byte in_key(byte a) {
 #if defined(ZXS)
     __asm__("in a, (#0xfe)");
+#elif defined(CPC)
+    __asm__("di");
+    a = cpc_key(a);
+    __asm__("ei");
 #endif
     return a;
 }
 
 static byte get_num_key(void) {
 #if defined(ZXS)
-    if ((in_key(0xef) & 1) == 0) {
-	return 0;
-    }
-    else {
-	byte f7 = in_key(0xf7);
-	if ((f7 & 1) == 0) return 1;
-	if ((f7 & 2) == 0) return 2;
-	if ((f7 & 4) == 0) return 3;
-    }
+    byte ef = in_key(0xef);
+    byte f7 = in_key(0xf7);
+    if ((ef & 1) == 0) return 0;
+    if ((f7 & 1) == 0) return 1;
+    if ((f7 & 2) == 0) return 2;
+    if ((f7 & 4) == 0) return 3;
+#elif defined(CPC)
+    if ((in_key(4) & 1) == 0) return 0;
+    if ((in_key(8) & 1) == 0) return 1;
+    if ((in_key(8) & 2) == 0) return 2;
+    if ((in_key(7) & 2) == 0) return 3;
 #endif
     return 0xff;
 }
