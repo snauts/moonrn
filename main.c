@@ -604,7 +604,7 @@ static void select_joystick(byte a) {
 static byte select_clear[2 << BPP_SHIFT];
 static void show_select_menu(void) {
     for (byte i = 0; i < 4; i++) {
-	byte x = 11 + (i << 1);
+	byte x = 12 + (i << 1);
 	if (i <= max_run) {
 	    display_part_image(&select, x, 22, 2);
 	    put_char('0' + i, (x << 3) + 3, 183);
@@ -621,7 +621,7 @@ static void show_select_menu(void) {
 }
 
 static void select_run(byte on) {
-    byte x = 11 + (run_num << 1);
+    byte x = 12 + (run_num << 1);
     if (on) {
 	put_char('_', (x << 3) + 3, 184);
     }
