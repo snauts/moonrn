@@ -592,12 +592,37 @@ static void print_start_message(void) {
     center_msg(concat("Press SPACE to ", start_string()), 168);
 }
 
-static void select_joystick(byte a) {
+static void put_bitmap(const byte *addr, byte x, word y, byte c) {
+    byte h = y << 3;
+    x = x << BPP_SHIFT;
+    for (byte i = h; i < h + 8; i++) {
+	byte *ptr = map_y[i] + x;
+#if defined(CPC)
+	*ptr++ = *addr++;
+#endif
+	*ptr = *addr++;
+    }
 #if defined(ZXS)
-    __asm__("in a, (#0x1f)");
-    if ((a & 0x10) == 0) use_joy = 1;
-#else
-    a;
+    BYTE(0x5800 + (y << 5) + x) = c;
+#endif
+}
+
+static byte in_key(byte a);
+
+static void show_joystick(void) {
+#if defined(ZXS)
+    put_bitmap(joystick + (use_joy ? PLAYER : 0), 30, 21, 1);
+#endif
+}
+static void select_joystick(void) {
+#if defined(ZXS)
+    static byte lst;
+    byte key = ~in_key(0xbf);
+    if ((key & 8) && !(lst & 8)) {
+	use_joy = !use_joy;
+	show_joystick();
+    }
+    lst = key;
 #endif
 }
 
@@ -676,8 +701,8 @@ static void show_title(void) {
     display_image(&credits, 1, 23);
     display_image(&title, 0, 1);
     show_select_menu();
+    show_joystick();
 
-    use_joy = 0;
     byte roll = 0;
     while (!SPACE_DOWN()) {
 	wait_vblank();
@@ -685,7 +710,7 @@ static void show_title(void) {
 	lit_line(roll - 32, 0x01);
 	lit_line(roll - 16, 0x41);
 	roll = (roll + 1) & 0x3f;
-	select_joystick(0);
+	select_joystick();
 	select_menu_item();
     }
 }
@@ -936,22 +961,6 @@ static byte twinkle_box(byte offset) {
 	&& pos <= (twinkle_height - 1);
 }
 
-static void put_bonus(byte offset, byte x, word y) {
-    byte h = y << 3;
-    x = x << BPP_SHIFT;
-    const byte *addr = bonus + offset;
-    for (byte i = h; i < h + 8; i++) {
-	byte *ptr = map_y[i] + x;
-#if defined(CPC)
-	*ptr++ = *addr++;
-#endif
-	*ptr = *addr++;
-    }
-#if defined(ZXS)
-    BYTE(0x5800 + (y << 5) + x) = 6;
-#endif
-}
-
 static void draw_twinkle(void) {
 #if defined(ZXS)
     static const byte mask[] = {
@@ -972,7 +981,7 @@ static void draw_twinkle(void) {
 	    byte *ptr = twinkle_ptr[index] + offset;
 	    twinkle_mask = mask[pos & (7 >> BPP_SHIFT)];
 	    if ((*ptr & twinkle_mask) || twinkle_box(offset)) {
-		put_bonus(PLAYER, 21 + twinkle_num, 4);
+		put_bitmap(bonus + PLAYER, 21 + twinkle_num, 4, 6);
 		*twinkle_ptr = NULL;
 		twinkle_sound();
 	    }
@@ -1356,7 +1365,7 @@ static const char *done_message(void) {
 static void report_twinkles(void) {
     byte mask = 0x20;
     for (byte i = 0; i < 6; i++) {
-	put_bonus(twinkle_num & mask ? PLAYER : 0, i + 13, 20);
+	put_bitmap(bonus + (twinkle_num & mask ? PLAYER : 0), i + 13, 20, 6);
 	mask = mask >> 1;
     }
     if (twinkle_num == 0x3f) {
@@ -1718,7 +1727,7 @@ static void no_lives(void) {
     lives = 0;
     for (byte x = 0; x < 6; x++) {
 	erase_player(26 - x, 44);
-	if (bonus_run()) put_bonus(0, 21 + x, 4);
+	if (bonus_run()) put_bitmap(bonus, 21 + x, 4, 6);
 	sound_fx((x + 8) << 4, 0);
 	delay(3);
     }
@@ -1747,6 +1756,7 @@ void start_up(void) __naked {
     __asm__("di");
     __asm__("ld a, #0");
     __asm__("ld (_run_num), a");
+    __asm__("ld (_use_joy), a");
     __asm__("ld a, #1");
     __asm__("ld (_max_run), a");
     __asm__("jp _reset");
