@@ -604,6 +604,8 @@ static void put_bitmap(const byte *addr, byte x, word y, byte c) {
     }
 #if defined(ZXS)
     BYTE(0x5800 + (y << 5) + x) = c;
+#else
+    c;
 #endif
 }
 
