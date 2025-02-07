@@ -1,5 +1,15 @@
 #define AY
 
+void start_up(void) __naked {
+    __asm__("di");
+    __asm__("ld a, #0");
+    __asm__("ld (_run_num), a");
+    __asm__("ld (_use_joy), a");
+    __asm__("ld a, #1");
+    __asm__("ld (_max_run), a");
+    __asm__("jp _reset");
+}
+
 typedef signed char int8;
 typedef signed short int16;
 typedef unsigned char byte;
@@ -1752,16 +1762,6 @@ static void top_level(void) {
 
     stop_music();
     game_over();
-}
-
-void start_up(void) __naked {
-    __asm__("di");
-    __asm__("ld a, #0");
-    __asm__("ld (_run_num), a");
-    __asm__("ld (_use_joy), a");
-    __asm__("ld a, #1");
-    __asm__("ld (_max_run), a");
-    __asm__("jp _reset");
 }
 
 void reset(void) {
