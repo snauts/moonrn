@@ -283,6 +283,19 @@ static void save_image_entry(char *name, char *type) {
     printf(" .%s_size = sizeof(%s_%s),\n", type, name, type);
 }
 
+static void save_scr(unsigned char *pixel, int pixel_size,
+		     unsigned char *color, int color_size) {
+    for (int y = 0; y < 192; y++) {
+	for (int x = 0; x < 32; x++) {
+	    int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
+	    putchar(pixel[(f << 5) + x]);
+	}
+    }
+    for (int i = 0; i < color_size; i++) {
+	putchar(color[i]);
+    }
+}
+
 static void save_image(unsigned char *pixel, int pixel_size,
 		       unsigned char *color, int color_size) {
 
@@ -342,6 +355,9 @@ static void save_bitmap(unsigned char *buf, int size) {
     switch (option) {
     case 'c':
 	save_image(pixel, pixel_size, color, color_size);
+	break;
+    case 's':
+	save_scr(pixel, pixel_size, color, color_size);
 	break;
     case 'p':
 	save_raw(pixel, pixel_size, "");
