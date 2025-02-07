@@ -49,6 +49,8 @@ prg: pcx
 	hex2bin moonrn.ihx > /dev/null
 
 tap:
+	@./pcx-dump -s loading.pcx > loading.scr
+	bin2tap -a 16384 loading.scr
 	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) moonrn.bin
 
 zxs:

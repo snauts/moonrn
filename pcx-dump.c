@@ -455,6 +455,7 @@ int main(int argc, char **argv) {
 	printf("  -c   save compressed image\n");
 	printf("  -p   save raw pixel data\n");
 	printf("  -l   save level data\n");
+	printf("  -s   save .scr file\n");
 	return 0;
     }
 
