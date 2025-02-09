@@ -50,7 +50,6 @@ prg: pcx
 
 tap:
 	@./pcx-dump -s loading.pcx > loading.scr
-	bin2tap -a 16384 loading.scr
 	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) moonrn.bin
 
 zxs:
@@ -80,4 +79,4 @@ cap: cpc
 
 crop:
 	dd if=music.pt3 of=tempory.pt3 bs=1 skip=100
-	mv tempory.pt3 music.pt3
+	mv tempory.pt3 music.pt3 loading.scr
