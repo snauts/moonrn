@@ -383,7 +383,7 @@ static byte str_offset(const char *msg, byte from) {
 }
 
 static byte text_gap(const char * const *str_list) {
-    byte offset = ~0;
+    byte offset = 128;
     while (*str_list) {
 	byte gap = str_offset(*str_list, 128);
 	if (gap < offset) offset = gap;
