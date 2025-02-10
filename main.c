@@ -392,6 +392,15 @@ static byte text_gap(const char * const *str_list) {
     return offset;
 }
 
+static byte text_top(const char * const *str_list, byte window) {
+    byte height = 0;
+    while (*str_list) {
+	height += (**str_list == ' ' ? 12 : 8);
+	str_list++;
+    }
+    return (window - height) >> 1;
+}
+
 static void uncompress(byte *dst, const byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
@@ -717,7 +726,7 @@ static void select_menu_item(void) {
 static void show_intro_text(void) {
     const char * const *str_list = intro;
     byte x = text_gap(intro);
-    byte y = 68;
+    byte y = 52 + text_top(intro, 108);
     while (*str_list) {
 	y += **str_list == ' ' ? 12 : 8;
 	put_str(*str_list, x, y);
