@@ -719,8 +719,8 @@ static void show_title(void) {
     while (!SPACE_DOWN()) {
 	wait_vblank();
 	animate_water();
-	lit_line(roll - 32, 0x01);
-	lit_line(roll - 16, 0x41);
+	lit_line(roll - 32, 0x41);
+	lit_line(roll - 24, 0x01);
 	roll = (roll + 1) & 0x3f;
 	select_joystick();
 	select_menu_item();
