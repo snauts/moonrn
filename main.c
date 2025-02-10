@@ -382,6 +382,16 @@ static byte str_offset(const char *msg, byte from) {
     return from - (str_len(msg) >> 1);
 }
 
+static byte text_gap(const char * const *str_list) {
+    byte offset = ~0;
+    while (*str_list) {
+	byte gap = str_offset(*str_list, 128);
+	if (gap < offset) offset = gap;
+	str_list++;
+    }
+    return offset;
+}
+
 static void uncompress(byte *dst, const byte *src, word size) {
     while (size > 0) {
 	byte data = (*src & 0x3f) + 1;
@@ -493,6 +503,7 @@ static const char * const intro[] = {
     "of his ponds gets a small patch of land,",
     "a sack of seed potatoes and a big jug of",
     "the finest moonshine as a reward.",
+    NULL,
 };
 
 static void lit_line(byte offset, byte color) {
@@ -703,22 +714,14 @@ static void select_menu_item(void) {
     }
 }
 
-static byte intro_gap(void) {
-    byte size = 0;
-    for (byte i = 0; i < SIZE(intro); i++) {
-	byte len = str_len(intro[i]);
-	if (len > size) size = len;
-    }
-    return (255 - size + 1) >> 1;
-}
-
 static void show_intro_text(void) {
+    const char * const *str_list = intro;
+    byte x = text_gap(intro);
     byte y = 68;
-    byte x = intro_gap();
-    for (byte i = 0; i < SIZE(intro); i++) {
-	const char *str = intro[i];
-	y += *str == ' ' ? 12 : 8;
-	put_str(str, x, y);
+    while (*str_list) {
+	y += **str_list == ' ' ? 12 : 8;
+	put_str(*str_list, x, y);
+	str_list++;
     }
 }
 
