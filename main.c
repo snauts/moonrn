@@ -703,12 +703,22 @@ static void select_menu_item(void) {
     }
 }
 
+static byte intro_gap(void) {
+    byte size = 0;
+    for (byte i = 0; i < SIZE(intro); i++) {
+	byte len = str_len(intro[i]);
+	if (len > size) size = len;
+    }
+    return (255 - size + 1) >> 1;
+}
+
 static void show_intro_text(void) {
     byte y = 68;
+    byte x = intro_gap();
     for (byte i = 0; i < SIZE(intro); i++) {
 	const char *str = intro[i];
 	y += *str == ' ' ? 12 : 8;
-	put_str(str, 20, y);
+	put_str(str, x, y);
     }
 }
 
