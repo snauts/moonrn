@@ -392,10 +392,14 @@ static byte text_gap(const char * const *str_list) {
     return offset;
 }
 
+static byte spacing(const char *str) {
+    return *str == ' ' ? 12 : 9;
+}
+
 static byte text_top(const char * const *str_list, byte window) {
     byte height = 0;
     while (*str_list) {
-	height += (**str_list == ' ' ? 12 : 8);
+	height += spacing(*str_list);
 	str_list++;
     }
     return (window - height) >> 1;
@@ -503,15 +507,14 @@ static void put_sprite(byte *addr, byte x, byte y, byte w, byte h) {
 }
 
 static const char * const intro[] = {
-    " Each year in the kingdom of Mondlauf,",
-    "the second full moon casts its rays on",
-    "royal ponds solidifying water for a few",
-    "seconds, just enough for an agile person",
-    "to leap over waves. King Lamsack offers",
-    "a challenge: Anyone who crosses a series",
-    "of his ponds gets a small patch of land,",
-    "a sack of seed potatoes and a big jug of",
-    "the finest moonshine as a reward.",
+    "  Each year in the Mondlauf Kingdom, the last",
+    "full moon casts its rays on royal ponds making",
+    "water solid for a few seconds, just enough for",
+    "an agile person to leap over waves.",
+    "  King Lamsack offers a challenge:",
+    "  Anyone who crosses a series of his ponds",
+    "gets a small patch of land, a sack of potatoes",
+    "and a jug of the finest moonshine as a reward.",
     NULL,
 };
 
@@ -726,9 +729,9 @@ static void select_menu_item(void) {
 static void show_intro_text(void) {
     const char * const *str_list = intro;
     byte x = text_gap(intro);
-    byte y = 52 + text_top(intro, 108);
+    byte y = 50 + text_top(intro, 108);
     while (*str_list) {
-	y += **str_list == ' ' ? 12 : 8;
+	y += spacing(*str_list);
 	put_str(*str_list, x, y);
 	str_list++;
     }
