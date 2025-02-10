@@ -703,10 +703,17 @@ static void select_menu_item(void) {
     }
 }
 
-static void show_title(void) {
+static void show_intro_text(void) {
+    byte y = 68;
     for (byte i = 0; i < SIZE(intro); i++) {
-	put_str(intro[i], 20, 80 + (i << 3));
+	const char *str = intro[i];
+	y += *str == ' ' ? 12 : 8;
+	put_str(str, 20, y);
     }
+}
+
+static void show_title(void) {
+    show_intro_text();
     print_start_message();
 
     display_image(&hazard, 22, 23);
