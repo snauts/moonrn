@@ -18,12 +18,13 @@ pcx:
 	@./pcx-dump -c credits.pcx >> data.h
 	@./pcx-dump -c hazard.pcx >> data.h
 	@./pcx-dump -c select.pcx >> data.h
+	@./pcx-dump -c joystick.pcx >> data.h
+	@./pcx-dump -c sadstick.pcx >> data.h
 	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h
 	@./pcx-dump -p drowner.pcx >> data.h
 	@./pcx-dump -p boat.pcx >> data.h
 	@./pcx-dump -p bonus.pcx >> data.h
-	@./pcx-dump -p joystick.pcx >> data.h
 	@./pcx-dump -l level0.pcx >> data.h
 	@./pcx-dump -l levelM.pcx >> data.h
 	@./pcx-dump -l levelP.pcx >> data.h

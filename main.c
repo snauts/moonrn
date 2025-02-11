@@ -646,7 +646,7 @@ static byte in_key(byte a);
 
 static void show_joystick(void) {
 #if defined(ZXS)
-    put_bitmap(joystick + (use_joy ? PLAYER : 0), 30, 21, 1);
+    display_image(use_joy ? &joystick : &sadstick, 29, 21);
 #endif
 }
 static void select_joystick(void) {
