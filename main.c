@@ -921,6 +921,7 @@ static byte on_bridge(void) {
     return pos == STANDING;
 }
 
+#define STOP ((32 << BPP_SHIFT) - 1)
 static void animate_player(void) {
     short remain = level_length - scroll;
 
@@ -928,8 +929,8 @@ static void animate_player(void) {
     if (!contact()) {
 	frame = runner + (jump == 2 ? 0 : (48 << BPP_SHIFT));
     }
-    else if (on_bridge() && remain < 16) {
-	frame = stoper + (((byte) remain) << (3 + BPP_SHIFT));
+    else if (on_bridge() && remain <= STOP) {
+	frame = stoper + (((STOP - remain) & (0xfc << BPP_SHIFT)) << 1);
     }
     else {
 	if (ticker & 1) frame += PLAYER;
