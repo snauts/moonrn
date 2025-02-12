@@ -917,10 +917,19 @@ static void move_player(void) {
     }
 }
 
+static byte on_bridge(void) {
+    return pos == STANDING;
+}
+
 static void animate_player(void) {
+    short remain = level_length - scroll;
+
     move_player();
     if (!contact()) {
 	frame = runner + (jump == 2 ? 0 : (48 << BPP_SHIFT));
+    }
+    else if (on_bridge() && remain < 16) {
+	frame = stoper + (((byte) remain) << (3 + BPP_SHIFT));
     }
     else {
 	if (ticker & 1) frame += PLAYER;
@@ -1039,10 +1048,6 @@ static void draw_twinkle(void) {
 
 static void animate_wave(void) {
     frame = waver + (ticker & 16 ? PLAYER : 0);
-}
-
-static byte on_bridge(void) {
-    return pos == STANDING;
 }
 
 static void wave_before_start(void) {

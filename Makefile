@@ -22,6 +22,7 @@ pcx:
 	@./pcx-dump -c sadstick.pcx >> data.h
 	@./pcx-dump -p waver.pcx >> data.h
 	@./pcx-dump -p runner.pcx >> data.h
+	@./pcx-dump -p stoper.pcx >> data.h
 	@./pcx-dump -p drowner.pcx >> data.h
 	@./pcx-dump -p boat.pcx >> data.h
 	@./pcx-dump -p bonus.pcx >> data.h
