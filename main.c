@@ -917,22 +917,26 @@ static void move_player(void) {
     }
 }
 
+static byte stoping(void) {
+    short remain = (32 << BPP_SHIFT) - 1;
+    remain -= level_length - scroll;
+    if (remain >= 0) {
+	frame = stoper + ((remain & (0xfc << BPP_SHIFT)) << 1);
+	return 1;
+    }
+    return 0;
+}
+
 static byte on_bridge(void) {
     return pos == STANDING;
 }
 
-#define STOP ((32 << BPP_SHIFT) - 1)
 static void animate_player(void) {
-    short remain = level_length - scroll;
-
     move_player();
     if (!contact()) {
 	frame = runner + (jump == 2 ? 0 : (48 << BPP_SHIFT));
     }
-    else if (on_bridge() && remain <= STOP) {
-	frame = stoper + (((STOP - remain) & (0xfc << BPP_SHIFT)) << 1);
-    }
-    else {
+    else if (!on_bridge() || !stoping()) {
 	if (ticker & 1) frame += PLAYER;
 	if (frame - runner >= 64 << BPP_SHIFT) {
 	    frame = runner;
