@@ -649,11 +649,19 @@ static void show_joystick(void) {
     display_image(use_joy ? &joystick : &sadstick, 29, 21);
 #endif
 }
+
+#if defined(ZXS)
+static byte in_joy(byte a) {
+    __asm__("in a, (#0x1f)"); a;
+    return a;
+}
+#endif
+
 static void select_joystick(void) {
 #if defined(ZXS)
     static byte lst;
     byte key = ~in_key(0xbf);
-    if ((key & 8) && !(lst & 8)) {
+    if ((key & 8) && !(lst & 8) && !(in_joy(0) & 0x10)) {
 	use_joy = !use_joy;
 	show_joystick();
     }
